@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>NeuroWare - Neurosurgical Storage & Inventory System</title>
   
-  <!-- Apple iOS Mobile Web App Meta -->
+  <!-- Apple iOS Mobile Web App Meta & PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="NeuroWare">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#04060A">
 
-  <!-- Manifest -->
+  <!-- Apple Touch Icons & Manifest -->
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
   <link rel="manifest" href="manifest.webmanifest">
 
   <!-- Stylesheet -->
@@ -25,9 +27,9 @@
     <!-- Desktop Top Control Strip -->
     <div class="desktop-controls-bar">
       <div class="brand-pill">
-        <div class="brand-icon">🧠</div>
+        <img src="assets/icon.svg" style="width:24px;height:24px;border-radius:6px;" alt="NW Logo">
         <span>NeuroWare OS</span>
-        <span style="font-size:11px;opacity:0.6;">v1.0</span>
+        <span style="font-size:11px;opacity:0.6;">v1.1</span>
       </div>
 
       <div class="desktop-actions">
@@ -129,12 +131,49 @@
   <script src="js/notifications.js"></script>
   <script src="js/app.js"></script>
 
-  <!-- PWA Service Worker Registration -->
+  <!-- PWA Service Worker Registration with Active Update Detection -->
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(err => {
-          console.log('SW registration note:', err);
+        navigator.serviceWorker.register('sw.js').then((registration) => {
+          // 1. Actively poll for updates every 60 seconds
+          setInterval(() => {
+            registration.update().catch(() => {});
+          }, 60000);
+
+          // 2. Also check for updates whenever app comes into focus or reconnects
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              registration.update().catch(() => {});
+            }
+          });
+          window.addEventListener('online', () => {
+            registration.update().catch(() => {});
+          });
+
+          // 3. Listen for new service worker installation
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // Post skipWaiting so the new worker takes control immediately
+                  newWorker.postMessage({ type: 'SKIP_WAITING' });
+                }
+              });
+            }
+          });
+        }).catch(err => {
+          console.warn('SW registration warning:', err);
+        });
+
+        // 4. Reload smoothly when the new service worker activates and claims the page
+        let refreshing = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (!refreshing) {
+            refreshing = true;
+            window.location.reload();
+          }
         });
       });
     }

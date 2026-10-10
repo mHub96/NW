@@ -56,3 +56,4 @@ window.NEURO_CONFIG = {
   ROLES,
   DEVICE_MODES
 };
+

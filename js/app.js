@@ -1,6 +1,7 @@
 /**
  * NeuroWare Main Application Orchestrator
- * High-Fidelity iOS UI Controller, Tab Routing, Surgical Portals & Dynamic Schema Builders
+ * High-Fidelity iOS UI Controller, Multi-Variant Stock Management,
+ * Dynamic Schema Specification Selectors & Clean Production Authentication
  */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -18,18 +19,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const inventory = new InventoryManager(getDb, saveDb, auth);
   const notifications = new NotificationManager(getDb, saveDb, auth);
 
-  // Expose to window for inline onclick handlers if needed
   window.NW = { storage, auth, inventory, notifications, getDb, saveDb };
 
   // 2. Global UI State
   let currentTab = "surgery";
-  let surgicalCart = []; // Temporary tray during surgical reporting
+  let surgicalCart = [];
   let activeEditingItemId = null;
-  let activeUserActionId = null;
 
-  // 3. Theme & Clock Management
+  // 3. Theme & Status Bar Clock
   function initTheme() {
-    const savedTheme = localStorage.getItem("neuroware_theme") || "dark"; // Defaulting to sleek dark OLED iOS
+    const savedTheme = localStorage.getItem("neuroware_theme") || "dark";
     document.documentElement.setAttribute("data-theme", savedTheme);
     const themeSelect = document.getElementById("settingsThemeSelect");
     if (themeSelect) themeSelect.value = savedTheme;
@@ -46,23 +45,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const now = new Date();
     let hours = now.getHours();
     const minutes = String(now.getMinutes()).padStart(2, "0");
-    const ampm = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
     timeEl.textContent = `${hours}:${minutes}`;
   }
   setInterval(updateClock, 1000);
   updateClock();
 
-  // 4. Sync Status Handler
+  // 4. Cloud Sync Status Indicators
   storage.onSyncStatusChange((status, detail, lastTime) => {
     const dots = document.querySelectorAll(".sync-dot");
     const texts = document.querySelectorAll(".sync-status-text");
-    dots.forEach(dot => {
-      dot.className = `sync-dot ${status}`;
-    });
-    texts.forEach(txt => {
-      txt.textContent = detail || status;
-    });
+    dots.forEach(dot => dot.className = `sync-dot ${status}`);
+    texts.forEach(txt => txt.textContent = detail || status);
 
     const settingsSyncTime = document.getElementById("settingsLastSync");
     if (settingsSyncTime && lastTime) {
@@ -70,14 +64,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Listen for cloud sync events
   window.addEventListener("neuroware:data_synced", (e) => {
     dbData = e.detail;
     renderCurrentView();
     notifications.updateBadges();
   });
 
-  // 5. Authentication UI Handlers
+  // 5. Authentication UI Controller
   function checkAuthAndRender() {
     const user = auth.getCurrentUser();
     const authScreen = document.getElementById("authModalScreen");
@@ -85,25 +78,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const appTabBar = document.querySelector(".ios-tab-bar");
 
     if (!user) {
-      // Show Auth Screen
       if (authScreen) authScreen.style.display = "flex";
       if (appHeader) appHeader.style.display = "none";
       if (appTabBar) appTabBar.style.display = "none";
       renderAuthForms();
     } else {
-      // Hide Auth Screen
       if (authScreen) authScreen.style.display = "none";
       if (appHeader) appHeader.style.display = "flex";
       if (appTabBar) appTabBar.style.display = "flex";
 
-      // Update Nav User Badge
       const userBadge = document.getElementById("navUserRoleBadge");
       if (userBadge) {
         userBadge.textContent = user.role;
         userBadge.className = `role-badge ${user.role.toLowerCase()}`;
       }
 
-      // Configure Tab Bar based on User Role
       setupTabBarForRole(user.role);
       renderCurrentView();
       notifications.updateBadges();
@@ -115,7 +104,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!tabContainer) return;
 
     if (role === window.NEURO_CONFIG.ROLES.REGULAR) {
-      // Regular user: ONLY Surgery (Report), Catalog (Stock view), Logbook (History), Alerts, Settings
       tabContainer.innerHTML = `
         <button class="tab-item ${currentTab === 'surgery' ? 'active' : ''}" data-tab="surgery">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -142,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       `;
     } else {
-      // Admin / Owner: Surgery (Report), Inventory (Editor & Schema), History (Logbook), Users (Approvals/Device Locks), Alerts, Settings
       tabContainer.innerHTML = `
         <button class="tab-item ${currentTab === 'surgery' ? 'active' : ''}" data-tab="surgery">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -177,12 +164,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       `;
     }
 
-    // Attach click listeners to tabs
     tabContainer.querySelectorAll(".tab-item").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const tab = btn.dataset.tab;
-        switchTab(tab);
-      });
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
     });
   }
 
@@ -229,14 +212,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==========================================================================
-  // TAB 1: SURGICAL REPORTING PORTAL (REGULAR USERS & MANAGERS)
+  // TAB 1: SURGERY PORTAL WITH SPEC-LEVEL STOCK AVAILABILITY
   // ==========================================================================
   function renderSurgeryPortal(container) {
     const db = getDb();
     const specialists = db?.specialists || [];
     const todayStr = new Date().toISOString().split("T")[0];
-
-    // Pre-calculate items with dynamic attributes
     const items = inventory.getItems();
 
     container.innerHTML = `
@@ -302,11 +283,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- Item Selection Card with Dynamic Attributes -->
+      <!-- Item Selection Card with Dynamic Attributes and Live Spec-Level Stock Check -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">2. Select Used Surgical Items</span>
-          <span style="font-size:11.5px;color:var(--ios-text-secondary);">Dynamic Config</span>
+          <span style="font-size:11.5px;color:var(--ios-text-secondary);">Spec Stock</span>
         </div>
 
         <div class="ios-input-group">
@@ -314,24 +295,27 @@ document.addEventListener("DOMContentLoaded", async () => {
           <select id="surgItemSelect" class="ios-select">
             <option value="">-- Choose Item --</option>
             ${items.map(it => {
-              const stockTxt = it.quantity <= 0 ? `[OUT OF STOCK - 0]` : `[Stock: ${it.quantity} ${it.unit}]`;
+              const stockTxt = it.quantity <= 0 ? `[OUT OF STOCK - 0]` : `[Total: ${it.quantity} ${it.unit}]`;
               const warnTag = it.quantity <= it.threshold ? `⚠️ ` : ``;
               return `<option value="${it.id}" ${it.quantity <= 0 ? 'disabled' : ''}>${warnTag}${it.name} ${stockTxt}</option>`;
             }).join("")}
           </select>
         </div>
 
-        <!-- Dynamic Item Attributes Box (e.g. Shunt Pressure, Manufacturer, Type) -->
+        <!-- Dynamic Item Attributes Box (e.g. Shunt Type, Pressure, Manufacturer) -->
         <div id="dynamicAttributesSection" style="display:none;background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:var(--radius-md);padding:12px;margin-bottom:12px;">
           <div style="font-size:12px;font-weight:700;color:var(--ios-blue);margin-bottom:8px;text-transform:uppercase;">
-            Item Specifications (Selected Parameters)
+            Select Device Specifications (Each parameter combinations leads to a different storage value)
           </div>
           <div id="dynamicAttributesFormFields"></div>
+          
+          <!-- Live Stock Feedback for the Selected Combination -->
+          <div id="variantLiveStockFeedback" style="margin-top:10px;padding:8px 12px;border-radius:8px;font-size:12.5px;font-weight:600;display:none;"></div>
         </div>
 
         <div style="display:flex;gap:10px;align-items:flex-end;">
           <div class="ios-input-group" style="flex:1;margin-bottom:0;">
-            <label class="ios-label">Quantity Used</label>
+            <label class="ios-label">Quantity</label>
             <input type="number" id="surgItemQty" class="ios-input" value="1" min="1" max="50">
           </div>
           <div class="ios-input-group" style="flex:1.5;margin-bottom:0;">
@@ -344,7 +328,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- Surgical Tray (Items to be consumed) -->
+      <!-- Surgical Tray Summary -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">3. Surgical Tray Summary</span>
@@ -357,7 +341,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         <div class="ios-input-group">
           <label class="ios-label">Intra-Operative Notes / Observations</label>
-          <textarea id="surgNotes" class="ios-textarea" placeholder="e.g. Good CSF flow observed, opening pressure measured 14 cmH2O. Hemostasis secured with FloSeal."></textarea>
+          <textarea id="surgNotes" class="ios-textarea" placeholder="Intraoperative notes or opening pressures measured"></textarea>
         </div>
 
         <button type="button" id="btnSubmitOperation" class="ios-btn ios-btn-primary" style="margin-top:8px;">
@@ -367,10 +351,51 @@ document.addEventListener("DOMContentLoaded", async () => {
       </div>
     `;
 
-    // Attach dynamic attributes listener when item dropdown changes
     const itemSelect = document.getElementById("surgItemSelect");
     const dynamicSection = document.getElementById("dynamicAttributesSection");
     const dynamicFields = document.getElementById("dynamicAttributesFormFields");
+    const liveStockFeedback = document.getElementById("variantLiveStockFeedback");
+    const addBtn = document.getElementById("btnAddToTray");
+
+    function checkLiveVariantStock() {
+      const selectedId = itemSelect.value;
+      if (!selectedId) return;
+      const item = inventory.getItemById(selectedId);
+      if (!item) return;
+
+      const dynamicInputs = document.querySelectorAll(".dynamic-attr-input");
+      const selectedAttrs = {};
+      let allSelected = true;
+
+      dynamicInputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (!val) allSelected = false;
+        selectedAttrs[inp.dataset.attrName] = val;
+      });
+
+      if (!allSelected) {
+        liveStockFeedback.style.display = "block";
+        liveStockFeedback.style.background = "var(--ios-bg-tertiary)";
+        liveStockFeedback.style.color = "var(--ios-text-secondary)";
+        liveStockFeedback.textContent = "Please select all specifications to verify available storage quantity.";
+        return;
+      }
+
+      const variant = inventory.findVariant(item, selectedAttrs);
+      liveStockFeedback.style.display = "block";
+
+      if (variant && variant.quantity > 0) {
+        liveStockFeedback.style.background = "rgba(52, 199, 89, 0.15)";
+        liveStockFeedback.style.color = "var(--ios-green)";
+        liveStockFeedback.innerHTML = `🟢 In Storage: <strong>${variant.quantity} ${item.unit}</strong> available for this exact combination.`;
+        document.getElementById("surgItemQty").max = variant.quantity;
+      } else {
+        liveStockFeedback.style.background = "rgba(255, 59, 48, 0.15)";
+        liveStockFeedback.style.color = "var(--ios-red)";
+        liveStockFeedback.innerHTML = `🔴 OUT OF STOCK: <strong>0 ${item.unit}</strong> available for this specification in storage!`;
+        document.getElementById("surgItemQty").max = 0;
+      }
+    }
 
     itemSelect.addEventListener("change", () => {
       const selectedId = itemSelect.value;
@@ -385,30 +410,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      // Render custom dynamic dropdowns configured by Owner/Admin!
       dynamicSection.style.display = "block";
       dynamicFields.innerHTML = item.attributes.map(attr => {
         return `
           <div class="ios-input-group">
-            <label class="ios-label">${attr.name} ${attr.required ? '*' : ''}</label>
-            ${attr.type === 'dropdown' ? `
-              <select class="ios-select dynamic-attr-input" data-attr-name="${attr.name}" ${attr.required ? 'required' : ''}>
-                <option value="">-- Choose ${attr.name} --</option>
-                ${(attr.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join("")}
-              </select>
-            ` : `
-              <input type="${attr.type === 'number' ? 'number' : 'text'}" class="ios-input dynamic-attr-input" data-attr-name="${attr.name}" placeholder="Enter ${attr.name}">
-            `}
+            <label class="ios-label">${attr.name} *</label>
+            <select class="ios-select dynamic-attr-input" data-attr-name="${attr.name}" required>
+              <option value="">-- Choose ${attr.name} --</option>
+              ${(attr.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join("")}
+            </select>
           </div>
         `;
       }).join("");
+
+      document.querySelectorAll(".dynamic-attr-input").forEach(sel => {
+        sel.addEventListener("change", checkLiveVariantStock);
+      });
+
+      checkLiveVariantStock();
     });
 
     // Add to tray handler
-    document.getElementById("btnAddToTray").addEventListener("click", () => {
+    addBtn.addEventListener("click", () => {
       const selectedId = itemSelect.value;
       if (!selectedId) {
-        alert("Please select an item from the storage catalog.");
+        alert("Please select an item from storage.");
         return;
       }
 
@@ -421,32 +447,38 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
-      // Check current available stock vs what's already in tray
-      const alreadyInTray = surgicalCart.filter(x => x.itemId === selectedId).reduce((sum, x) => sum + x.quantity, 0);
-      if (item.quantity < (alreadyInTray + qty)) {
-        alert(`Insufficient stock! Only ${item.quantity} ${item.unit} available in storage.`);
+      const dynamicInputs = document.querySelectorAll(".dynamic-attr-input");
+      const selectedAttributes = {};
+      let missingField = false;
+
+      dynamicInputs.forEach(inp => {
+        const val = inp.value.trim();
+        if (!val) missingField = true;
+        selectedAttributes[inp.dataset.attrName] = val;
+      });
+
+      if (dynamicInputs.length > 0 && missingField) {
+        alert("Please select all device parameters (e.g. Type, Pressure level, Manufacturer) to identify the specific item.");
         return;
       }
 
-      // Gather dynamic attribute selections
-      const dynamicInputs = document.querySelectorAll(".dynamic-attr-input");
-      const selectedAttributes = {};
-      let missingRequired = false;
-
-      dynamicInputs.forEach(inp => {
-        const attrName = inp.dataset.attrName;
-        const val = inp.value.trim();
-        if (inp.hasAttribute("required") && !val) {
-          missingRequired = true;
+      // Check variant stock
+      if (item.attributes && item.attributes.length > 0) {
+        const variant = inventory.findVariant(item, selectedAttributes);
+        const specSummary = Object.entries(selectedAttributes).map(([k, v]) => `${k}: ${v}`).join(", ");
+        if (!variant || variant.quantity <= 0) {
+          alert(`This specific device (${specSummary}) is out of stock in storage!`);
+          return;
         }
-        if (val) {
-          selectedAttributes[attrName] = val;
-        }
-      });
 
-      if (missingRequired) {
-        alert("Please select all required item specifications (e.g. Shunt Pressure Gauge, Manufacturer, Type).");
-        return;
+        const alreadyInTray = surgicalCart
+          .filter(x => x.itemId === selectedId && InventoryManager.getVariantKey(x.selectedAttributes) === InventoryManager.getVariantKey(selectedAttributes))
+          .reduce((sum, x) => sum + x.quantity, 0);
+
+        if (variant.quantity < (alreadyInTray + qty)) {
+          alert(`Insufficient stock! Only ${variant.quantity} available for this specification.`);
+          return;
+        }
       }
 
       surgicalCart.push({
@@ -458,20 +490,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         lotNumber: lot
       });
 
-      // Reset item inputs
       itemSelect.value = "";
       dynamicSection.style.display = "none";
       document.getElementById("surgItemQty").value = "1";
       document.getElementById("surgItemLot").value = "";
 
-      // Re-render tray
       const trayBox = document.getElementById("surgicalTrayContainer");
       if (trayBox) trayBox.innerHTML = renderSurgicalTrayRows();
       const badge = document.getElementById("trayCountBadge");
       if (badge) badge.textContent = `${surgicalCart.length} Items`;
     });
 
-    // Submit Operation handler
+    // Submit Operation
     document.getElementById("btnSubmitOperation").addEventListener("click", async () => {
       const patientName = document.getElementById("surgPatientName").value.trim();
       const specialistCare = document.getElementById("surgSpecialist").value;
@@ -486,12 +516,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         alert("Please provide the Patient's Name.");
         return;
       }
-
       if (!specialistCare) {
-        alert("Please select under which specialist care this patient is operated.");
+        alert("Please select the attending Specialist Care.");
         return;
       }
-
       if (surgicalCart.length === 0) {
         alert("Please add at least one consumed surgical item to the tray.");
         return;
@@ -512,11 +540,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       try {
         const btn = document.getElementById("btnSubmitOperation");
         btn.disabled = true;
-        btn.textContent = "Recording & Syncing Storage...";
+        btn.textContent = "Updating Storage Counts...";
 
         await inventory.submitSurgicalConsumption(reportPayload);
-
-        // Reset cart and form
         surgicalCart = [];
         alert("Surgical consumption successfully recorded! Storage counts updated.");
         switchTab("logbook");
@@ -585,23 +611,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       listContainer.innerHTML = items.map(item => {
         const isLow = item.isLowStock;
         const isOut = item.isOutOfStock;
-        let cardAlertClass = "";
-        let stockBadgeHtml = "";
+        let cardAlertClass = isOut ? "out-of-stock-alert" : (isLow ? "low-stock-alert" : "");
 
-        if (isOut) {
-          cardAlertClass = "out-of-stock-alert";
-          stockBadgeHtml = `<span class="stock-badge out_of_stock">OUT OF STOCK (0)</span>`;
-        } else if (isLow) {
-          cardAlertClass = "low-stock-alert";
-          stockBadgeHtml = `<span class="stock-badge low_stock">⚠️ LOW STOCK (${item.quantity} left)</span>`;
-        } else {
-          stockBadgeHtml = `<span class="stock-badge healthy">Available (${item.quantity} ${item.unit})</span>`;
-        }
-
-        const attrPills = (item.attributes || []).map(a => {
-          const optsCount = a.options ? a.options.length : 0;
-          return `<span class="attr-pill-preview">⚙️ ${a.name} (${optsCount} options)</span>`;
-        }).join(" ");
+        const variantsHtml = (item.variants || []).map(v => {
+          const specTitle = Object.entries(v.attributes || {}).map(([k, val]) => `${k}: <strong>${val}</strong>`).join(" • ");
+          const vLow = v.isLowStock;
+          const vOut = v.isOutOfStock;
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-bottom:0.5px solid var(--ios-separator);font-size:12px;">
+              <div>${specTitle}</div>
+              <div style="font-weight:700;color:${vOut ? 'var(--ios-red)' : (vLow ? 'var(--ios-orange)' : 'var(--ios-text-primary)')};">
+                ${v.quantity} ${item.unit} ${vOut ? '(OUT)' : (vLow ? '(LOW)' : '')}
+              </div>
+            </div>
+          `;
+        }).join("");
 
         return `
           <div class="neuro-item-card ${cardAlertClass}">
@@ -614,20 +638,29 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <div class="stock-count-huge ${isOut ? 'out' : (isLow ? 'low' : '')}">
                   ${item.quantity} <span style="font-size:12px;font-weight:600;color:var(--ios-text-secondary);">${item.unit}</span>
                 </div>
-                ${stockBadgeHtml}
+                ${isOut ? '<span class="stock-badge out_of_stock">OUT OF STOCK</span>' : (isLow ? '<span class="stock-badge low_stock">⚠️ LOW STOCK</span>' : '<span class="stock-badge healthy">Available</span>')}
               </div>
             </div>
 
-            ${attrPills ? `<div class="dynamic-attributes-container">${attrPills}</div>` : ''}
+            <!-- Expandable Feature Breakdown -->
+            ${item.variants && item.variants.length > 0 ? `
+              <details style="margin-top:10px;background:var(--ios-card-inner);border-radius:var(--radius-md);padding:6px 10px;border:1px solid var(--ios-separator);">
+                <summary style="font-size:12px;font-weight:600;color:var(--ios-blue);cursor:pointer;">
+                  📦 View Specifications Breakdown (${item.variants.length} Types)
+                </summary>
+                <div style="margin-top:8px;">
+                  ${variantsHtml}
+                </div>
+              </details>
+            ` : ''}
 
             <div class="item-meta-row">
               <div class="item-meta-item">
-                <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                 <span>${item.location || 'Storage'}</span>
               </div>
               <div class="item-meta-item">
-                <svg style="width:14px;height:14px;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                <span>Alarm at: &le; ${item.threshold}</span>
+                <span>Alarm Threshold: &le; ${item.threshold}</span>
               </div>
             </div>
           </div>
@@ -667,7 +700,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==========================================================================
-  // TAB 2 (ADMIN / OWNER): INVENTORY EDITOR & DYNAMIC SCHEMA BUILDER
+  // TAB 2 (ADMIN / OWNER): INVENTORY EDITOR & REFILL COMBINATION BUILDER
   // ==========================================================================
   function renderInventoryEditor(container) {
     const categories = window.NEURO_CONFIG.NEUROSURGERY_CATEGORIES;
@@ -684,9 +717,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         const isOut = item.isOutOfStock;
         let cardAlertClass = isOut ? "out-of-stock-alert" : (isLow ? "low-stock-alert" : "");
 
-        const attrTags = (item.attributes || []).map(a => {
-          return `<span class="attr-pill-preview">⚙️ ${a.name} (${(a.options || []).length} choices)</span>`;
-        }).join(" ");
+        const variantsHtml = (item.variants || []).map(v => {
+          const specTitle = Object.entries(v.attributes || {}).map(([k, val]) => `${k}: <strong>${val}</strong>`).join(" • ");
+          return `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:0.5px solid var(--ios-separator);font-size:12px;">
+              <div>${specTitle}</div>
+              <div style="font-weight:700;color:${v.isOutOfStock ? 'var(--ios-red)' : (v.isLowStock ? 'var(--ios-orange)' : 'var(--ios-text-primary)')};">
+                ${v.quantity} ${item.unit}
+              </div>
+            </div>
+          `;
+        }).join("");
 
         return `
           <div class="neuro-item-card ${cardAlertClass}">
@@ -704,18 +745,26 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
             </div>
 
-            ${attrTags ? `<div class="dynamic-attributes-container">${attrTags}</div>` : ''}
+            <!-- Dynamic Variants List in Editor -->
+            ${item.variants && item.variants.length > 0 ? `
+              <div style="margin-top:10px;background:var(--ios-card-inner);border-radius:var(--radius-md);padding:8px 12px;border:1px solid var(--ios-separator);">
+                <div style="font-size:11.5px;font-weight:700;color:var(--ios-blue);text-transform:uppercase;margin-bottom:6px;">
+                  Active Specifications & Stock
+                </div>
+                ${variantsHtml}
+              </div>
+            ` : ''}
 
             <!-- Manager Action Controls -->
             <div style="display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:0.5px solid var(--ios-separator);flex-wrap:wrap;">
               <button class="ios-btn ios-btn-success ios-btn-sm" onclick="window.openRefillModal('${item.id}')">
-                + Refill Stock
+                + Refill Specific Spec
               </button>
               <button class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.openEditItemModal('${item.id}')">
                 ✏️ Edit Details
               </button>
               <button class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.openSchemaModal('${item.id}')" style="background:rgba(0,122,255,0.12);color:var(--ios-blue);">
-                ⚙️ Dynamic Schema (${(item.attributes || []).length})
+                ⚙️ Dynamic Parameters (${(item.attributes || []).length})
               </button>
               <button class="ios-btn ios-btn-danger ios-btn-sm" onclick="window.deleteItemAction('${item.id}')" style="margin-left:auto;">
                 🗑️
@@ -753,7 +802,137 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderEditorList();
   }
 
-  // --- Modal Helpers for Inventory Editor ---
+  // --- Refill Modal (Specifies Exact Feature Combination to Refill) ---
+  window.openRefillModal = (itemId) => {
+    const item = inventory.getItemById(itemId);
+    if (!item) return;
+
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+    title.textContent = `Refill Stock: ${item.name}`;
+
+    const hasAttrs = item.attributes && item.attributes.length > 0;
+    const existingVariants = item.variants || [];
+
+    body.innerHTML = `
+      <form id="refillForm">
+        <div style="background:var(--ios-card-inner);padding:12px;border-radius:var(--radius-md);margin-bottom:14px;border:1px solid var(--ios-separator);">
+          <div style="font-size:12px;color:var(--ios-text-secondary);">Total in Storage across all specs:</div>
+          <div style="font-size:20px;font-weight:800;color:var(--ios-text-primary);">
+            ${item.quantity} ${item.unit}
+          </div>
+        </div>
+
+        ${hasAttrs ? `
+          <!-- Combination Selector -->
+          <div class="ios-card" style="padding:12px;margin-bottom:12px;">
+            <div style="font-size:12px;font-weight:700;color:var(--ios-blue);text-transform:uppercase;margin-bottom:8px;">
+              Specify Device Combination to Refill
+            </div>
+
+            ${existingVariants.length > 0 ? `
+              <div class="ios-input-group">
+                <label class="ios-label">Choose Existing Specification</label>
+                <select id="refillExistingVariantSelect" class="ios-select">
+                  <option value="">-- Or choose from custom dropdowns below --</option>
+                  ${existingVariants.map((v, idx) => {
+                    const desc = Object.entries(v.attributes || {}).map(([k, val]) => `${k}: ${val}`).join(" • ");
+                    return `<option value="${idx}">${desc} [Current: ${v.quantity} ${item.unit}]</option>`;
+                  }).join("")}
+                </select>
+              </div>
+            ` : ''}
+
+            <!-- Custom Parameter Pickers -->
+            <div id="refillCustomAttrFields">
+              ${item.attributes.map(attr => `
+                <div class="ios-input-group">
+                  <label class="ios-label">${attr.name} *</label>
+                  <select class="ios-select refill-attr-input" data-attr-name="${attr.name}" required>
+                    <option value="">-- Select ${attr.name} --</option>
+                    ${(attr.options || []).map(opt => `<option value="${opt}">${opt}</option>`).join("")}
+                  </select>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="ios-input-group">
+          <label class="ios-label">Amount to Add (+ Quantity) *</label>
+          <input type="number" id="refillAmountInput" class="ios-input" value="5" min="1" required>
+        </div>
+
+        <div style="display:flex;gap:6px;margin-bottom:14px;">
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 1">+1</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 3">+3</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 5">+5</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 10">+10</button>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Refill Note (Broadcast to Neurosurgeons)</label>
+          <input type="text" id="refillNoteInput" class="ios-input" placeholder="e.g. Received new shipment from Central Pharmacy">
+        </div>
+
+        <button type="submit" class="ios-btn ios-btn-success" style="margin-top:8px;">
+          Confirm Refill & Broadcast
+        </button>
+      </form>
+    `;
+
+    // Hook existing variant select to auto-populate the inputs
+    const existSelect = document.getElementById("refillExistingVariantSelect");
+    if (existSelect) {
+      existSelect.addEventListener("change", () => {
+        const val = existSelect.value;
+        if (val !== "") {
+          const chosenVar = existingVariants[parseInt(val, 10)];
+          if (chosenVar && chosenVar.attributes) {
+            document.querySelectorAll(".refill-attr-input").forEach(inp => {
+              const name = inp.dataset.attrName;
+              if (chosenVar.attributes[name]) {
+                inp.value = chosenVar.attributes[name];
+              }
+            });
+          }
+        }
+      });
+    }
+
+    document.getElementById("refillForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const amount = parseInt(document.getElementById("refillAmountInput").value, 10);
+      const note = document.getElementById("refillNoteInput").value.trim();
+
+      const selectedAttributes = {};
+      if (hasAttrs) {
+        let missing = false;
+        document.querySelectorAll(".refill-attr-input").forEach(inp => {
+          const val = inp.value.trim();
+          if (!val) missing = true;
+          selectedAttributes[inp.dataset.attrName] = val;
+        });
+
+        if (missing) {
+          alert("Please select all device parameters to specify which combination you are refilling.");
+          return;
+        }
+      }
+
+      try {
+        await inventory.refillItem(itemId, amount, selectedAttributes, note);
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        alert("Refill failed: " + err.message);
+      }
+    });
+
+    openModal();
+  };
+
+  // --- Add New Item Modal ---
   function openAddItemModal() {
     const modal = document.getElementById("universalBottomSheet");
     const title = document.getElementById("sheetModalTitle");
@@ -783,7 +962,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div style="display:flex;gap:10px;">
           <div class="ios-input-group" style="flex:1;">
             <label class="ios-label">Initial Quantity</label>
-            <input type="number" id="newItemQty" class="ios-input" value="5" min="0">
+            <input type="number" id="newItemQty" class="ios-input" value="0" min="0">
           </div>
           <div class="ios-input-group" style="flex:1;">
             <label class="ios-label">Low Stock Alarm Threshold</label>
@@ -812,18 +991,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("addItemForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const name = document.getElementById("newItemName").value.trim();
-      const category = document.getElementById("newItemCategory").value;
-      const unit = document.getElementById("newItemUnit").value.trim();
-      const quantity = parseInt(document.getElementById("newItemQty").value, 10);
-      const lowStockThreshold = parseInt(document.getElementById("newItemThreshold").value, 10);
-      const location = document.getElementById("newItemLocation").value.trim();
-      const sku = document.getElementById("newItemSku").value.trim();
-      const notes = document.getElementById("newItemNotes").value.trim();
-
       try {
         await inventory.addItem({
-          name, category, unit, quantity, lowStockThreshold, location, sku, notes
+          name: document.getElementById("newItemName").value.trim(),
+          category: document.getElementById("newItemCategory").value,
+          unit: document.getElementById("newItemUnit").value.trim(),
+          quantity: parseInt(document.getElementById("newItemQty").value, 10),
+          lowStockThreshold: parseInt(document.getElementById("newItemThreshold").value, 10),
+          location: document.getElementById("newItemLocation").value.trim(),
+          sku: document.getElementById("newItemSku").value.trim(),
+          notes: document.getElementById("newItemNotes").value.trim()
         });
         closeModal();
         renderCurrentView();
@@ -835,63 +1012,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     openModal();
   }
 
-  window.openRefillModal = (itemId) => {
-    const item = inventory.getItemById(itemId);
-    if (!item) return;
-
-    const title = document.getElementById("sheetModalTitle");
-    const body = document.getElementById("sheetModalBody");
-    title.textContent = `Refill Stock: ${item.name}`;
-
-    body.innerHTML = `
-      <form id="refillForm">
-        <div style="background:var(--ios-card-inner);padding:12px;border-radius:var(--radius-md);margin-bottom:14px;border:1px solid var(--ios-separator);">
-          <div style="font-size:13px;color:var(--ios-text-secondary);">Current Stock in Storage:</div>
-          <div style="font-size:22px;font-weight:800;color:var(--ios-text-primary);margin-top:2px;">
-            ${item.quantity} ${item.unit}
-          </div>
-        </div>
-
-        <div class="ios-input-group">
-          <label class="ios-label">Amount to Add (+ Quantity) *</label>
-          <input type="number" id="refillAmountInput" class="ios-input" value="5" min="1" required autofocus>
-        </div>
-
-        <div style="display:flex;gap:6px;margin-bottom:14px;">
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 1">+1</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 3">+3</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 5">+5</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 10">+10</button>
-        </div>
-
-        <div class="ios-input-group">
-          <label class="ios-label">Refill Note (Broadcast to Users)</label>
-          <input type="text" id="refillNoteInput" class="ios-input" placeholder="e.g. Received new shipment from Central Pharmacy">
-        </div>
-
-        <button type="submit" class="ios-btn ios-btn-success" style="margin-top:8px;">
-          Confirm Refill & Notify Neurosurgeons
-        </button>
-      </form>
-    `;
-
-    document.getElementById("refillForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const amount = parseInt(document.getElementById("refillAmountInput").value, 10);
-      const note = document.getElementById("refillNoteInput").value.trim();
-
-      try {
-        await inventory.refillItem(itemId, amount, note);
-        closeModal();
-        renderCurrentView();
-      } catch (err) {
-        alert("Refill failed: " + err.message);
-      }
-    });
-
-    openModal();
-  };
-
+  // --- Edit General Item Details ---
   window.openEditItemModal = (itemId) => {
     const item = inventory.getItemById(itemId);
     if (!item) return;
@@ -924,18 +1045,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         <div style="display:flex;gap:10px;">
           <div class="ios-input-group" style="flex:1;">
-            <label class="ios-label">Adjust Quantity</label>
-            <input type="number" id="editItemQty" class="ios-input" value="${item.quantity}" min="0">
-          </div>
-          <div class="ios-input-group" style="flex:1;">
             <label class="ios-label">Alarm Threshold</label>
             <input type="number" id="editItemThreshold" class="ios-input" value="${item.threshold}" min="1">
           </div>
-        </div>
-
-        <div class="ios-input-group">
-          <label class="ios-label">Storage Location</label>
-          <input type="text" id="editItemLocation" class="ios-input" value="${item.location || ''}">
+          <div class="ios-input-group" style="flex:1;">
+            <label class="ios-label">Storage Location</label>
+            <input type="text" id="editItemLocation" class="ios-input" value="${item.location || ''}">
+          </div>
         </div>
 
         <div class="ios-input-group">
@@ -959,7 +1075,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           name: document.getElementById("editItemName").value,
           category: document.getElementById("editItemCategory").value,
           unit: document.getElementById("editItemUnit").value,
-          quantity: parseInt(document.getElementById("editItemQty").value, 10),
           lowStockThreshold: parseInt(document.getElementById("editItemThreshold").value, 10),
           location: document.getElementById("editItemLocation").value,
           sku: document.getElementById("editItemSku").value,
@@ -975,7 +1090,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     openModal();
   };
 
-  // --- Dynamic Schema Builder Modal (VP Shunts, Screws, Custom Dropdowns) ---
+  // --- Dynamic Schema Builder Modal ---
   window.openSchemaModal = (itemId) => {
     activeEditingItemId = itemId;
     const item = inventory.getItemById(itemId);
@@ -983,7 +1098,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const title = document.getElementById("sheetModalTitle");
     const body = document.getElementById("sheetModalBody");
-    title.textContent = `Configure Details: ${item.name}`;
+    title.textContent = `Configure Parameters: ${item.name}`;
 
     function renderSchemaModalContent() {
       const freshItem = inventory.getItemById(activeEditingItemId);
@@ -992,13 +1107,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       body.innerHTML = `
         <div style="margin-bottom:14px;">
           <div style="font-size:13px;color:var(--ios-text-secondary);margin-bottom:6px;">
-            Customize the dynamic dropdowns and parameters that surgeons select when reporting this item (e.g. Pressure level, Manufacturer, Type).
+            Add or edit the parameters (dropdowns) for this item. Each combination of these parameters represents a distinct surgical item with its own stock count.
           </div>
         </div>
 
-        <!-- Add new dynamic attribute definition form -->
         <div class="attr-builder-card" style="border:1.5px dashed var(--ios-blue);">
-          <div style="font-size:12.5px;font-weight:700;color:var(--ios-blue);margin-bottom:8px;">+ Add New Detail / Dropdown</div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--ios-blue);margin-bottom:8px;">+ Add New Parameter / Dropdown</div>
           <div style="display:flex;gap:8px;margin-bottom:8px;">
             <input type="text" id="newAttrNameInput" class="ios-input" placeholder="e.g. Shunt Pressure Gauge Level" style="flex:2;">
             <select id="newAttrTypeInput" class="ios-select" style="flex:1;">
@@ -1013,22 +1127,20 @@ document.addEventListener("DOMContentLoaded", async () => {
           <button type="button" id="btnCreateAttr" class="ios-btn ios-btn-primary ios-btn-sm">Create Parameter</button>
         </div>
 
-        <!-- Existing Attributes List -->
         <div style="margin-top:16px;">
-          <div class="ios-section-title" style="margin-bottom:10px;">Configured Item Details (${attrs.length})</div>
-          ${attrs.length === 0 ? `<div style="text-align:center;color:var(--ios-text-secondary);padding:14px;">No custom attributes added yet.</div>` : ''}
+          <div class="ios-section-title" style="margin-bottom:10px;">Configured Parameters (${attrs.length})</div>
+          ${attrs.length === 0 ? `<div style="text-align:center;color:var(--ios-text-secondary);padding:14px;">No parameters added yet.</div>` : ''}
 
-          ${attrs.map((attr, aIdx) => `
+          ${attrs.map((attr) => `
             <div class="attr-builder-card">
               <div class="attr-builder-header">
                 <div>
                   <strong style="font-size:14px;">${attr.name}</strong>
                   <span style="font-size:11px;color:var(--ios-blue);margin-left:6px;text-transform:uppercase;">[${attr.type}]</span>
                 </div>
-                <button type="button" class="btn-tag-remove" onclick="window.deleteAttributeAction('${activeEditingItemId}', '${attr.id}')" title="Delete attribute">&times;</button>
+                <button type="button" class="btn-tag-remove" onclick="window.deleteAttributeAction('${activeEditingItemId}', '${attr.id}')" title="Delete parameter">&times;</button>
               </div>
 
-              <!-- Options List for Dropdowns -->
               ${attr.type === 'dropdown' ? `
                 <div style="font-size:11.5px;font-weight:600;color:var(--ios-text-secondary);margin-top:6px;">Options / Parameters:</div>
                 <div class="options-tag-cloud">
@@ -1040,9 +1152,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                   `).join("")}
                 </div>
 
-                <!-- Add new parameter option to this attribute -->
                 <div style="display:flex;gap:6px;margin-top:8px;">
-                  <input type="text" id="addOptInput_${attr.id}" class="ios-input" placeholder="New option (e.g. Ultra-Low)" style="padding:6px 10px;font-size:12px;">
+                  <input type="text" id="addOptInput_${attr.id}" class="ios-input" placeholder="New option" style="padding:6px 10px;font-size:12px;">
                   <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.addOptionAction('${activeEditingItemId}', '${attr.id}')">Add</button>
                 </div>
               ` : ''}
@@ -1051,7 +1162,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       `;
 
-      // Attach create attribute listener
       const btnCreate = document.getElementById("btnCreateAttr");
       if (btnCreate) {
         btnCreate.addEventListener("click", async () => {
@@ -1060,7 +1170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const optsRaw = document.getElementById("newAttrInitialOptions").value.trim();
 
           if (!name) {
-            alert("Attribute name is required.");
+            alert("Parameter name is required.");
             return;
           }
 
@@ -1087,7 +1197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   window.deleteAttributeAction = async (itemId, attrId) => {
-    if (!confirm("Are you sure you want to remove this detail field from the item?")) return;
+    if (!confirm("Remove this parameter from the item?")) return;
     try {
       await inventory.removeAttributeFromItem(itemId, attrId);
       window.openSchemaModal(itemId);
@@ -1110,7 +1220,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addOptionAction = async (itemId, attrId) => {
     const input = document.getElementById(`addOptInput_${attrId}`);
     if (!input || !input.value.trim()) return;
-
     try {
       await inventory.addOptionToAttribute(itemId, attrId, input.value.trim());
       window.openSchemaModal(itemId);
@@ -1123,11 +1232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.deleteItemAction = async (itemId) => {
     const item = inventory.getItemById(itemId);
     if (!item) return;
-
-    if (!confirm(`Are you sure you want to delete "${item.name}" from the inventory? This cannot be undone.`)) {
-      return;
-    }
-
+    if (!confirm(`Are you sure you want to delete "${item.name}" from inventory?`)) return;
     try {
       await inventory.deleteItem(itemId);
       renderCurrentView();
@@ -1166,7 +1271,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         listContainer.innerHTML = `
           <div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);">
             <svg style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <div>No operative logs found for the selected filter.</div>
+            <div>No operative logs found. Operative logbook is clean.</div>
           </div>
         `;
         return;
@@ -1176,7 +1281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const timeFormatted = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
         const itemsRendered = (log.items || []).map(it => {
-          const paramsList = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(", ");
+          const paramsList = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(" • ");
           return `
             <div class="log-item-bullet">
               🔹 <strong>${it.quantity}x ${it.itemName}</strong>
@@ -1217,7 +1322,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     container.innerHTML = `
-      <!-- Filters and Date / Month Selector -->
       <div class="ios-card" style="padding:12px 14px;">
         <div class="ios-section-header" style="margin-bottom:8px;">
           <span class="ios-section-title">Logbook Filter & Day Selector</span>
@@ -1258,7 +1362,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- Log Entries Container -->
       <div id="logbookEntriesList"></div>
     `;
 
@@ -1283,16 +1386,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       renderLogEntries();
     });
 
-    // CSV Export
     document.getElementById("btnExportCsv").addEventListener("click", () => {
       const logs = inventory.getUsageLogs({ date: selectedDate, specialist: selectedSpecialist, search: searchQ });
       exportLogsToCsv(logs);
     });
 
-    // Print helper
-    document.getElementById("btnPrintLog").addEventListener("click", () => {
-      window.print();
-    });
+    document.getElementById("btnPrintLog").addEventListener("click", () => window.print());
 
     renderLogEntries();
   }
@@ -1332,7 +1431,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==========================================================================
-  // TAB 4: USER MANAGEMENT, APPROVALS & HARDWARE DEVICE LOCKS (ADMIN/OWNER)
+  // TAB 4: USER MANAGEMENT, APPROVALS & OWNER EDIT PERMISSIONS
   // ==========================================================================
   function renderUserManagementView(container) {
     const db = getDb();
@@ -1341,7 +1440,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const activeUsers = users.filter(u => u.status !== "pending");
 
     container.innerHTML = `
-      <!-- Section 1: Pending Sign-up Requests -->
       <div class="ios-card" style="border:1.5px solid ${pendingUsers.length > 0 ? 'var(--ios-orange)' : 'var(--ios-card-border)'};">
         <div class="ios-section-header">
           <span class="ios-section-title">Sign-Up Requests (${pendingUsers.length})</span>
@@ -1349,19 +1447,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
 
         ${pendingUsers.length === 0 ? `
-          <div style="color:var(--ios-text-secondary);font-size:12.5px;padding:8px 0;">No pending account registrations at this time.</div>
+          <div style="color:var(--ios-text-secondary);font-size:12.5px;padding:8px 0;">No pending registrations.</div>
         ` : `
           ${pendingUsers.map(u => `
             <div style="background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:var(--radius-md);padding:12px;margin-bottom:10px;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-                <div>
-                  <strong style="font-size:14.5px;">${u.fullName}</strong>
-                  <div style="font-size:12px;color:var(--ios-blue);">@${u.username} • Phone: ${u.phone || 'N/A'}</div>
-                  <div style="font-size:11px;color:var(--ios-text-tertiary);margin-top:2px;">Requested on: ${new Date(u.createdAt).toLocaleDateString()}</div>
-                </div>
+              <div>
+                <strong style="font-size:14.5px;">${u.fullName}</strong>
+                <div style="font-size:12px;color:var(--ios-blue);">@${u.username} • Phone: ${u.phone || 'N/A'}</div>
+                <div style="font-size:11px;color:var(--ios-text-tertiary);margin-top:2px;">Requested on: ${new Date(u.createdAt).toLocaleDateString()}</div>
               </div>
 
-              <!-- Quick Approval Actions with Device Lock Configuration -->
               <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
                 <button type="button" class="ios-btn ios-btn-success ios-btn-sm" onclick="window.openApproveUserModal('${u.id}')">
                   ✓ Approve Access & Set Device Lock
@@ -1375,7 +1470,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         `}
       </div>
 
-      <!-- Section 2: Active User Directory -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">Active User Directory & Device Locks</span>
@@ -1400,11 +1494,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 @${u.username} • Phone: ${u.phone || 'N/A'}
               </div>
 
-              <!-- Registered Devices Inspection -->
               <div class="device-list-box">
                 <div style="font-weight:600;margin-bottom:3px;color:var(--ios-text-primary);">Bound Devices:</div>
                 ${registeredDevs.length === 0 ? `
-                  <span style="color:var(--ios-text-tertiary);">No device bound yet (Will bind on next login).</span>
+                  <span style="color:var(--ios-text-tertiary);">No device bound yet (Binds on next login).</span>
                 ` : `
                   ${registeredDevs.map(d => `
                     <div style="margin-bottom:2px;">• <strong>${d.name}</strong> <span style="color:var(--ios-text-tertiary);font-size:10.5px;">(Active: ${new Date(d.lastActive || d.registeredAt).toLocaleDateString()})</span></div>
@@ -1412,12 +1505,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                 `}
               </div>
 
-              <!-- User Actions -->
               <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;">
                 <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.openEditUserModal('${u.id}')">
-                  Edit Role & Limits
+                  ✏️ Edit Profile & Limits
                 </button>
-                <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.resetUserDevicesAction('${u.id}')" title="Clear registered device bindings so user can login with new phone">
+                <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm" onclick="window.resetUserDevicesAction('${u.id}')">
                   Reset Device Lock
                 </button>
                 ${u.role !== 'OWNER' ? `
@@ -1433,76 +1525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     `;
   }
 
-  // User Approval Modal
-  window.openApproveUserModal = (userId) => {
-    const db = getDb();
-    const user = db?.users?.find(u => u.id === userId);
-    if (!user) return;
-
-    const title = document.getElementById("sheetModalTitle");
-    const body = document.getElementById("sheetModalBody");
-    title.textContent = `Approve Access: ${user.fullName}`;
-
-    body.innerHTML = `
-      <form id="approveUserForm">
-        <div style="font-size:13px;color:var(--ios-text-secondary);margin-bottom:12px;">
-          Configure the permission role and hardware device lock limit for @${user.username}.
-        </div>
-
-        <div class="ios-input-group">
-          <label class="ios-label">Assigned Role</label>
-          <select id="approveRoleSelect" class="ios-select">
-            <option value="REGULAR" selected>REGULAR (Neurosurgeon / Scrub Nurse - Usage reporting only)</option>
-            <option value="ADMIN">ADMIN (Inventory Manager & Editor)</option>
-            ${auth.isOwner() ? '<option value="OWNER">OWNER (Chief Super-Administrator)</option>' : ''}
-          </select>
-        </div>
-
-        <div class="ios-input-group">
-          <label class="ios-label">Device Lock Policy</label>
-          <select id="approveDeviceSelect" class="ios-select">
-            <option value="1" selected>Single Device (Locked to 1 user phone/tablet)</option>
-            <option value="2">2 Devices (e.g. Personal Phone + Hospital Tablet)</option>
-            <option value="3">3 Devices</option>
-            <option value="unlimited">Unlimited Devices (No hardware lock)</option>
-          </select>
-        </div>
-
-        <button type="submit" class="ios-btn ios-btn-success" style="margin-top:12px;">
-          Confirm & Activate User
-        </button>
-      </form>
-    `;
-
-    document.getElementById("approveUserForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const role = document.getElementById("approveRoleSelect").value;
-      const deviceLimit = document.getElementById("approveDeviceSelect").value;
-
-      try {
-        await auth.approveUser(userId, role, deviceLimit);
-        closeModal();
-        renderCurrentView();
-        notifications.updateBadges();
-      } catch (err) {
-        alert("Approval failed: " + err.message);
-      }
-    });
-
-    openModal();
-  };
-
-  window.rejectUserAction = async (userId) => {
-    if (!confirm("Are you sure you want to reject this registration request?")) return;
-    try {
-      await auth.rejectUser(userId);
-      renderCurrentView();
-      notifications.updateBadges();
-    } catch (err) {
-      alert("Rejection failed: " + err.message);
-    }
-  };
-
+  // User Edit Modal (Owner can also edit username and full name)
   window.openEditUserModal = (userId) => {
     const db = getDb();
     const user = db?.users?.find(u => u.id === userId);
@@ -1514,20 +1537,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     body.innerHTML = `
       <form id="editUserForm">
+        <!-- Editable Full Name & Username for Owner & Admins -->
+        <div class="ios-input-group">
+          <label class="ios-label">Doctor / Staff Full Name *</label>
+          <input type="text" id="editUserFullName" class="ios-input" value="${user.fullName}" required>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">User Name (@username) *</label>
+          <input type="text" id="editUserUsername" class="ios-input" value="${user.username}" required>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Phone Number</label>
+          <input type="text" id="editUserPhone" class="ios-input" value="${user.phone || ''}">
+        </div>
+
         <div class="ios-input-group">
           <label class="ios-label">Account Role</label>
           <select id="editUserRole" class="ios-select">
-            <option value="REGULAR" ${user.role === 'REGULAR' ? 'selected' : ''}>REGULAR</option>
-            <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>ADMIN</option>
-            ${auth.isOwner() ? `<option value="OWNER" ${user.role === 'OWNER' ? 'selected' : ''}>OWNER</option>` : ''}
+            <option value="REGULAR" ${user.role === 'REGULAR' ? 'selected' : ''}>REGULAR (Doctor / Nurse - Usage reporting only)</option>
+            <option value="ADMIN" ${user.role === 'ADMIN' ? 'selected' : ''}>ADMIN (Storage Manager & Editor)</option>
+            ${auth.isOwner() ? `<option value="OWNER" ${user.role === 'OWNER' ? 'selected' : ''}>OWNER (Chief Super-Administrator)</option>` : ''}
           </select>
         </div>
 
         <div class="ios-input-group">
-          <label class="ios-label">Device Lock Limit</label>
+          <label class="ios-label">Hardware Device Lock Limit</label>
           <select id="editUserDeviceLimit" class="ios-select">
             <option value="1" ${user.deviceLimit == 1 ? 'selected' : ''}>1 Device (Single Device Lock)</option>
-            <option value="2" ${user.deviceLimit == 2 ? 'selected' : ''}>2 Devices</option>
+            <option value="2" ${user.deviceLimit == 2 ? 'selected' : ''}>2 Devices (e.g. Phone + OT Tablet)</option>
             <option value="3" ${user.deviceLimit == 3 ? 'selected' : ''}>3 Devices</option>
             <option value="unlimited" ${user.deviceLimit === 'unlimited' ? 'selected' : ''}>Unlimited Devices</option>
           </select>
@@ -1538,17 +1577,26 @@ document.addEventListener("DOMContentLoaded", async () => {
           <input type="text" id="editUserNewPassword" class="ios-input" placeholder="Leave blank to keep unchanged">
         </div>
 
-        <button type="submit" class="ios-btn ios-btn-primary" style="margin-top:12px;">Save User Settings</button>
+        <button type="submit" class="ios-btn ios-btn-primary" style="margin-top:12px;">Save User Profile</button>
       </form>
     `;
 
     document.getElementById("editUserForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const newFullName = document.getElementById("editUserFullName").value.trim();
+      const newUsername = document.getElementById("editUserUsername").value.trim();
+      const newPhone = document.getElementById("editUserPhone").value.trim();
       const newRole = document.getElementById("editUserRole").value;
       const newLimit = document.getElementById("editUserDeviceLimit").value;
       const newPass = document.getElementById("editUserNewPassword").value.trim();
 
-      const updates = { role: newRole, deviceLimit: newLimit };
+      const updates = {
+        fullName: newFullName,
+        username: newUsername,
+        phone: newPhone,
+        role: newRole,
+        deviceLimit: newLimit
+      };
       if (newPass) updates.passwordPlain = newPass;
 
       try {
@@ -1563,8 +1611,68 @@ document.addEventListener("DOMContentLoaded", async () => {
     openModal();
   };
 
+  window.openApproveUserModal = (userId) => {
+    const db = getDb();
+    const user = db?.users?.find(u => u.id === userId);
+    if (!user) return;
+
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+    title.textContent = `Approve Access: ${user.fullName}`;
+
+    body.innerHTML = `
+      <form id="approveUserForm">
+        <div class="ios-input-group">
+          <label class="ios-label">Assigned Role</label>
+          <select id="approveRoleSelect" class="ios-select">
+            <option value="REGULAR" selected>REGULAR (Usage reporting only)</option>
+            <option value="ADMIN">ADMIN (Inventory Manager & Editor)</option>
+            ${auth.isOwner() ? '<option value="OWNER">OWNER</option>' : ''}
+          </select>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Device Lock Policy</label>
+          <select id="approveDeviceSelect" class="ios-select">
+            <option value="1" selected>Single Device (Locked to 1 device)</option>
+            <option value="2">2 Devices</option>
+            <option value="3">3 Devices</option>
+            <option value="unlimited">Unlimited Devices</option>
+          </select>
+        </div>
+
+        <button type="submit" class="ios-btn ios-btn-success" style="margin-top:12px;">Confirm & Activate User</button>
+      </form>
+    `;
+
+    document.getElementById("approveUserForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await auth.approveUser(userId, document.getElementById("approveRoleSelect").value, document.getElementById("approveDeviceSelect").value);
+        closeModal();
+        renderCurrentView();
+        notifications.updateBadges();
+      } catch (err) {
+        alert("Approval failed: " + err.message);
+      }
+    });
+
+    openModal();
+  };
+
+  window.rejectUserAction = async (userId) => {
+    if (!confirm("Reject this registration request?")) return;
+    try {
+      await auth.rejectUser(userId);
+      renderCurrentView();
+      notifications.updateBadges();
+    } catch (err) {
+      alert("Rejection failed: " + err.message);
+    }
+  };
+
   window.resetUserDevicesAction = async (userId) => {
-    if (!confirm("Reset all registered device bindings for this user? They will be able to bind their new device on their next login.")) return;
+    if (!confirm("Reset all registered device bindings for this user? They can bind a new device on next login.")) return;
     try {
       await auth.resetUserDevices(userId);
       alert("Device locks reset successfully.");
@@ -1596,12 +1704,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!listEl) return;
 
       if (notifs.length === 0) {
-        listEl.innerHTML = `
-          <div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);">
-            <svg style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <div>No alerts in this category.</div>
-          </div>
-        `;
+        listEl.innerHTML = `<div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);">No alerts in this category.</div>`;
         return;
       }
 
@@ -1612,15 +1715,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         else if (n.type === 'out_of_stock') iconHtml = '🚨';
         else if (n.type === 'signup_request') iconHtml = '👤';
 
-        const timeStr = new Date(n.timestamp).toLocaleString();
-
         return `
           <div class="notif-item ${n.type} ${n.isRead ? '' : 'unread'}" onclick="window.markNotifRead('${n.id}')">
             <div class="notif-icon-circle">${iconHtml}</div>
             <div class="notif-content">
               <div class="notif-title">${n.title}</div>
               <div class="notif-desc">${n.message}</div>
-              <div class="notif-time">${timeStr}</div>
+              <div class="notif-time">${new Date(n.timestamp).toLocaleString()}</div>
             </div>
           </div>
         `;
@@ -1675,7 +1776,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     const currentDevice = storage.initDeviceFingerprint();
 
     container.innerHTML = `
-      <!-- User Profile Header -->
       <div class="ios-card" style="display:flex;align-items:center;gap:14px;">
         <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--ios-blue),var(--ios-purple));display:flex;align-items:center;justify-content:center;color:#FFF;font-size:22px;font-weight:700;">
           ${(user?.fullName || 'U').charAt(0).toUpperCase()}
@@ -1687,7 +1787,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- Appearance & Sound Settings -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">App Preferences</span>
@@ -1724,7 +1823,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- Device Information -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">This Device Status</span>
@@ -1738,7 +1836,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       </div>
 
-      <!-- GitHub Cloud Sync Controls -->
       <div class="ios-card">
         <div class="ios-section-header">
           <span class="ios-section-title">GitHub Cloud Synchronization</span>
@@ -1759,21 +1856,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       </div>
 
-      <!-- Account Actions -->
       <div class="ios-card">
-        <button type="button" id="btnLogoutApp" class="ios-btn ios-btn-danger" style="margin-bottom:8px;">
+        <button type="button" id="btnLogoutApp" class="ios-btn ios-btn-danger">
           Sign Out of NeuroWare
         </button>
       </div>
     `;
 
-    document.getElementById("settingsThemeSelect").addEventListener("change", (e) => {
-      toggleTheme(e.target.value);
-    });
-
-    document.getElementById("settingsSoundToggle").addEventListener("change", (e) => {
-      notifications.soundEnabled = e.target.checked;
-    });
+    document.getElementById("settingsThemeSelect").addEventListener("change", (e) => toggleTheme(e.target.value));
+    document.getElementById("settingsSoundToggle").addEventListener("change", (e) => notifications.soundEnabled = e.target.checked);
 
     document.getElementById("btnForceSyncCloud").addEventListener("click", async () => {
       const btn = document.getElementById("btnForceSyncCloud");
@@ -1794,7 +1885,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   // ==========================================================================
-  // AUTHENTICATION MODAL SCREEN (LOGIN & SIGN-UP)
+  // AUTHENTICATION MODAL SCREEN (CLEAN, NO DEMO PILLS)
   // ==========================================================================
   function renderAuthForms() {
     const authContainer = document.getElementById("authModalScreen");
@@ -1804,21 +1895,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function renderForm() {
       authContainer.innerHTML = `
-        <div class="ios-card" style="width:100%;max-width:380px;padding:24px;border-radius:28px;box-shadow:var(--ios-shadow-lg);">
-          <div style="text-align:center;margin-bottom:20px;">
-            <div style="width:58px;height:58px;margin:0 auto 10px auto;border-radius:16px;background:linear-gradient(135deg,var(--ios-blue),var(--ios-indigo));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 20px rgba(0,122,255,0.4);">
-              <svg style="width:32px;height:32px;color:#FFF;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+        <div class="ios-card" style="width:100%;max-width:380px;padding:26px;border-radius:28px;box-shadow:var(--ios-shadow-lg);">
+          <div style="text-align:center;margin-bottom:22px;">
+            <div style="width:62px;height:62px;margin:0 auto 12px auto;border-radius:18px;background:linear-gradient(135deg,var(--ios-blue),var(--ios-indigo));display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,122,255,0.45);">
+              <img src="assets/icon.svg" style="width:46px;height:46px;border-radius:12px;" alt="NW Logo">
             </div>
-            <h1 style="font-size:20px;font-weight:800;letter-spacing:-0.4px;">NeuroWare</h1>
+            <h1 style="font-size:21px;font-weight:800;letter-spacing:-0.4px;">NeuroWare</h1>
             <p style="font-size:12.5px;color:var(--ios-text-secondary);margin-top:2px;">Neurosurgical Storage & Operative Inventory</p>
           </div>
 
           ${!isSignupMode ? `
-            <!-- Login Form -->
             <form id="loginForm">
               <div class="ios-input-group">
                 <label class="ios-label">Username</label>
-                <input type="text" id="loginUsername" class="ios-input" placeholder="e.g. owner or admin" required autocomplete="username">
+                <input type="text" id="loginUsername" class="ios-input" placeholder="Enter username" required autocomplete="username">
               </div>
 
               <div class="ios-input-group">
@@ -1830,44 +1920,31 @@ document.addEventListener("DOMContentLoaded", async () => {
                 Sign In
               </button>
 
-              <div style="text-align:center;margin-top:14px;">
+              <div style="text-align:center;margin-top:16px;">
                 <button type="button" id="btnToggleAuthMode" style="background:none;border:none;color:var(--ios-blue);font-size:13px;font-weight:600;cursor:pointer;">
-                  Don't have an account? Request Sign-up
+                  Don't have an account? Request Sign-Up
                 </button>
-              </div>
-
-              <!-- Quick Demo Login Pills for Quick Access -->
-              <div style="margin-top:18px;padding-top:14px;border-top:0.5px solid var(--ios-separator);">
-                <div style="font-size:11px;font-weight:700;color:var(--ios-text-secondary);text-transform:uppercase;margin-bottom:8px;text-align:center;">
-                  ⚡ Quick Demo Accounts
-                </div>
-                <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;">
-                  <button type="button" class="btn-ctrl" onclick="window.quickDemoLogin('owner', 'Owner2026!')">👑 Owner</button>
-                  <button type="button" class="btn-ctrl" onclick="window.quickDemoLogin('admin', 'Admin2026!')">🛡️ Admin</button>
-                  <button type="button" class="btn-ctrl" onclick="window.quickDemoLogin('dr_kareem', 'Kareem2026!')">🩺 Surgeon</button>
-                </div>
               </div>
             </form>
           ` : `
-            <!-- Sign-Up Request Form -->
             <form id="signupForm">
               <div class="ios-input-group">
                 <label class="ios-label">Doctor / Staff Full Name *</label>
-                <input type="text" id="signupFullName" class="ios-input" placeholder="e.g. Dr. Zaid Al-Hilli" required>
+                <input type="text" id="signupFullName" class="ios-input" placeholder="e.g. Dr. Haidar" required>
               </div>
 
               <div class="ios-input-group">
                 <label class="ios-label">Choose Username *</label>
-                <input type="text" id="signupUsername" class="ios-input" placeholder="e.g. dr_zaid" required>
+                <input type="text" id="signupUsername" class="ios-input" placeholder="e.g. dr_haidar" required>
               </div>
 
               <div class="ios-input-group">
                 <label class="ios-label">Password *</label>
-                <input type="password" id="signupPassword" class="ios-input" placeholder="Choose a password" required>
+                <input type="password" id="signupPassword" class="ios-input" placeholder="Create password" required>
               </div>
 
               <div class="ios-input-group">
-                <label class="ios-label">Phone Number (Optional)</label>
+                <label class="ios-label">Phone Number</label>
                 <input type="text" id="signupPhone" class="ios-input" placeholder="+964...">
               </div>
 
@@ -1879,7 +1956,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 Submit Registration Request
               </button>
 
-              <div style="text-align:center;margin-top:14px;">
+              <div style="text-align:center;margin-top:16px;">
                 <button type="button" id="btnToggleAuthMode" style="background:none;border:none;color:var(--ios-blue);font-size:13px;font-weight:600;cursor:pointer;">
                   Already registered? Back to Sign In
                 </button>
@@ -1889,7 +1966,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
       `;
 
-      // Toggle between Login and Sign-up
       const toggleBtn = document.getElementById("btnToggleAuthMode");
       if (toggleBtn) {
         toggleBtn.addEventListener("click", () => {
@@ -1898,7 +1974,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
 
-      // Handle Login Submit
       const loginForm = document.getElementById("loginForm");
       if (loginForm) {
         loginForm.addEventListener("submit", async (e) => {
@@ -1920,22 +1995,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
 
-      // Handle Signup Submit
       const signupForm = document.getElementById("signupForm");
       if (signupForm) {
         signupForm.addEventListener("submit", async (e) => {
           e.preventDefault();
-          const fullName = document.getElementById("signupFullName").value;
-          const username = document.getElementById("signupUsername").value;
-          const password = document.getElementById("signupPassword").value;
-          const phone = document.getElementById("signupPhone").value;
           const btn = document.getElementById("btnSignupSubmit");
           btn.disabled = true;
           btn.textContent = "Submitting Request...";
 
           try {
-            await auth.signup({ fullName, username, password, phone });
-            alert("Registration Submitted!\nYour account is now pending approval by the Storage Director (Admin/Owner). You will be notified once activated.");
+            await auth.signup({
+              fullName: document.getElementById("signupFullName").value,
+              username: document.getElementById("signupUsername").value,
+              password: document.getElementById("signupPassword").value,
+              phone: document.getElementById("signupPhone").value
+            });
+            alert("Registration Submitted!\nYour account is pending review by the Storage Director (Admin/Owner).");
             isSignupMode = false;
             renderForm();
           } catch (err) {
@@ -1946,16 +2021,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
     }
-
-    window.quickDemoLogin = (u, p) => {
-      const uField = document.getElementById("loginUsername");
-      const pField = document.getElementById("loginPassword");
-      if (uField && pField) {
-        uField.value = u;
-        pField.value = p;
-        document.getElementById("btnLoginSubmit").click();
-      }
-    };
 
     renderForm();
   }
@@ -1978,26 +2043,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.target.id === "universalModalOverlay") closeModal();
   });
 
-  // Top header bell button opens Alerts tab
-  document.getElementById("btnHeaderAlerts")?.addEventListener("click", () => {
-    switchTab("alerts");
-  });
+  document.getElementById("btnHeaderAlerts")?.addEventListener("click", () => switchTab("alerts"));
+  document.getElementById("btnHeaderProfile")?.addEventListener("click", () => switchTab("settings"));
 
-  // Top header user button opens Settings tab
-  document.getElementById("btnHeaderProfile")?.addEventListener("click", () => {
-    switchTab("settings");
-  });
-
-  // Desktop toggle fullscreen / phone frame view
   window.toggleDesktopFullscreen = () => {
     const frame = document.getElementById("mainIphoneFrame");
     const bar = document.querySelector(".desktop-controls-bar");
-    if (frame) {
-      frame.classList.toggle("fullscreen-mode");
-    }
-    if (bar) {
-      bar.classList.toggle("expanded");
-    }
+    if (frame) frame.classList.toggle("fullscreen-mode");
+    if (bar) bar.classList.toggle("expanded");
   };
 
   const desktopViewToggle = document.getElementById("btnToggleDesktopView");

@@ -213,3 +213,4 @@ class NotificationManager {
 }
 
 window.NotificationManager = NotificationManager;
+

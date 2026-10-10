@@ -1,7 +1,7 @@
 /**
  * NeuroWare Surgical Inventory & Operative Log Engine
- * Dynamic Item Schema Builder, Dynamic Dropdown Customization,
- * Stock Tracking & Low-Stock Alarm Automation
+ * Multi-Variant / Specification-Level Stock Tracking
+ * Dynamic Item Schema, Combination-Based Storage Values, Refills & Alarms
  */
 
 class InventoryManager {
@@ -11,7 +11,32 @@ class InventoryManager {
     this.auth = authManager;
   }
 
-  // Retrieve all items with computed stock health flags
+  // Canonical key generator for an attribute map
+  static getVariantKey(attrMap) {
+    if (!attrMap || typeof attrMap !== "object") return "";
+    return Object.keys(attrMap)
+      .sort()
+      .map(k => `${k}=${attrMap[k]}`)
+      .join("|");
+  }
+
+  // Find a matching variant inside an item by attribute map
+  findVariant(item, attrMap) {
+    if (!item || !item.variants || !Array.isArray(item.variants)) return null;
+    const targetKey = InventoryManager.getVariantKey(attrMap);
+    return item.variants.find(v => InventoryManager.getVariantKey(v.attributes) === targetKey) || null;
+  }
+
+  // Compute total item quantity across all distinct feature combinations
+  computeItemTotalQuantity(item) {
+    if (!item) return 0;
+    if (item.variants && Array.isArray(item.variants) && item.variants.length > 0) {
+      return item.variants.reduce((sum, v) => sum + (parseInt(v.quantity, 10) || 0), 0);
+    }
+    return parseInt(item.quantity, 10) || 0;
+  }
+
+  // Retrieve all items with computed stock health flags and variant counts
   getItems(filterCategory = "All Items", searchQuery = "") {
     const db = this.getDb();
     if (!db || !db.items) return [];
@@ -32,37 +57,53 @@ class InventoryManager {
         (it.attributes && it.attributes.some(a => 
           a.name.toLowerCase().includes(q) || 
           (a.options && a.options.some(o => o.toLowerCase().includes(q)))
+        )) ||
+        (it.variants && it.variants.some(v => 
+          Object.values(v.attributes || {}).some(val => String(val).toLowerCase().includes(q))
         ))
       );
     }
 
     return items.map(item => {
       const threshold = item.lowStockThreshold !== undefined ? item.lowStockThreshold : window.NEURO_CONFIG.CONFIG.defaultAlarmThreshold;
-      const isOutOfStock = item.quantity <= 0;
-      const isLowStock = !isOutOfStock && item.quantity <= threshold;
+      const totalQty = this.computeItemTotalQuantity(item);
+
+      // Check if any specific variant has low stock or out of stock
+      const variantsWithStatus = (item.variants || []).map(v => {
+        const vThreshold = v.lowStockThreshold !== undefined ? v.lowStockThreshold : threshold;
+        const vOut = v.quantity <= 0;
+        const vLow = !vOut && v.quantity <= vThreshold;
+        return {
+          ...v,
+          threshold: vThreshold,
+          isOutOfStock: vOut,
+          isLowStock: vLow,
+          status: vOut ? "out_of_stock" : (vLow ? "low_stock" : "healthy")
+        };
+      });
+
+      const hasLowStockVariant = variantsWithStatus.some(v => v.isLowStock);
+      const hasOutOfStockVariant = variantsWithStatus.some(v => v.isOutOfStock);
+      const isOutOfStock = totalQty <= 0;
+      const isLowStock = !isOutOfStock && (totalQty <= threshold || hasLowStockVariant);
+
       return {
         ...item,
+        quantity: totalQty,
         threshold,
+        variants: variantsWithStatus,
         isOutOfStock,
         isLowStock,
+        hasLowStockVariant,
+        hasOutOfStockVariant,
         stockStatus: isOutOfStock ? "out_of_stock" : (isLowStock ? "low_stock" : "healthy")
       };
     });
   }
 
   getItemById(id) {
-    const db = this.getDb();
-    if (!db || !db.items) return null;
-    const item = db.items.find(it => it.id === id);
-    if (!item) return null;
-    const threshold = item.lowStockThreshold !== undefined ? item.lowStockThreshold : window.NEURO_CONFIG.CONFIG.defaultAlarmThreshold;
-    return {
-      ...item,
-      threshold,
-      isOutOfStock: item.quantity <= 0,
-      isLowStock: item.quantity > 0 && item.quantity <= threshold,
-      stockStatus: item.quantity <= 0 ? "out_of_stock" : (item.quantity <= threshold ? "low_stock" : "healthy")
-    };
+    const items = this.getItems();
+    return items.find(it => it.id === id) || null;
   }
 
   // --- Admin/Owner: Add new item to storage ---
@@ -75,30 +116,25 @@ class InventoryManager {
       id: "item-" + Date.now().toString(36),
       name: itemData.name.trim(),
       category: itemData.category || "Consumables & PPE",
-      quantity: Math.max(0, parseInt(itemData.quantity, 10) || 0),
       lowStockThreshold: itemData.lowStockThreshold !== undefined ? parseInt(itemData.lowStockThreshold, 10) : window.NEURO_CONFIG.CONFIG.defaultAlarmThreshold,
       unit: itemData.unit ? itemData.unit.trim() : "Units",
       location: itemData.location ? itemData.location.trim() : "Storage Shelf",
       sku: itemData.sku ? itemData.sku.trim() : "",
       notes: itemData.notes ? itemData.notes.trim() : "",
       attributes: Array.isArray(itemData.attributes) ? itemData.attributes : [],
-      lastRefilled: {
-        date: new Date().toISOString(),
-        by: this.auth.getCurrentUser().username,
-        amount: parseInt(itemData.quantity, 10) || 0
-      },
+      variants: Array.isArray(itemData.variants) ? itemData.variants : [],
+      quantity: Math.max(0, parseInt(itemData.quantity, 10) || 0),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
 
     db.items.push(newItem);
 
-    // Broadcast notification that new item was added
     this.createNotification({
       type: "refill",
       priority: "normal",
       title: "New Item Added: " + newItem.name,
-      message: `${this.auth.getCurrentUser().fullName} added new item "${newItem.name}" (${newItem.quantity} ${newItem.unit}) to ${newItem.location}.`,
+      message: `${this.auth.getCurrentUser().fullName} registered new item "${newItem.name}" (${newItem.quantity} ${newItem.unit}) in ${newItem.location}.`,
       metadata: { itemId: newItem.id, quantity: newItem.quantity }
     });
 
@@ -122,7 +158,7 @@ class InventoryManager {
     if (updates.lowStockThreshold !== undefined) {
       item.lowStockThreshold = Math.max(1, parseInt(updates.lowStockThreshold, 10) || 2);
     }
-    if (updates.quantity !== undefined) {
+    if (updates.quantity !== undefined && (!item.variants || item.variants.length === 0)) {
       item.quantity = Math.max(0, parseInt(updates.quantity, 10) || 0);
     }
     item.updatedAt = new Date().toISOString();
@@ -131,8 +167,8 @@ class InventoryManager {
     return item;
   }
 
-  // --- Admin/Owner: Refill Stock Quantity ---
-  async refillItem(itemId, refillAmount, note = "") {
+  // --- Admin/Owner: Refill Stock Quantity for a Specific Feature Combination ---
+  async refillItem(itemId, refillAmount, selectedAttributes = null, note = "") {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can refill inventory stock.");
     const db = this.getDb();
     const item = db.items.find(it => it.id === itemId);
@@ -141,37 +177,78 @@ class InventoryManager {
     const added = parseInt(refillAmount, 10);
     if (isNaN(added) || added <= 0) throw new Error("Refill amount must be a positive number.");
 
-    item.quantity += added;
-    item.lastRefilled = {
-      date: new Date().toISOString(),
-      by: this.auth.getCurrentUser().username,
-      byName: this.auth.getCurrentUser().fullName,
-      amount: added,
-      note: note.trim()
-    };
+    if (!item.variants) item.variants = [];
+
+    let specDescription = "";
+    let variantTotal = 0;
+
+    if (selectedAttributes && Object.keys(selectedAttributes).length > 0) {
+      // Find matching variant
+      let variant = this.findVariant(item, selectedAttributes);
+      if (!variant) {
+        // Create new combination variant in storage
+        variant = {
+          id: "var-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6),
+          attributes: { ...selectedAttributes },
+          quantity: added,
+          lowStockThreshold: item.lowStockThreshold || 2,
+          sku: item.sku ? `${item.sku}-${item.variants.length + 1}` : "",
+          lastRefilled: {
+            date: new Date().toISOString(),
+            by: this.auth.getCurrentUser().username,
+            amount: added,
+            note: note.trim()
+          }
+        };
+        item.variants.push(variant);
+        variantTotal = added;
+      } else {
+        variant.quantity = (parseInt(variant.quantity, 10) || 0) + added;
+        variant.lastRefilled = {
+          date: new Date().toISOString(),
+          by: this.auth.getCurrentUser().username,
+          amount: added,
+          note: note.trim()
+        };
+        variantTotal = variant.quantity;
+      }
+
+      specDescription = Object.entries(selectedAttributes).map(([k, v]) => `${k}: ${v}`).join(", ");
+    } else {
+      // Item has no variants, refill simple item quantity
+      item.quantity = (parseInt(item.quantity, 10) || 0) + added;
+      variantTotal = item.quantity;
+      item.lastRefilled = {
+        date: new Date().toISOString(),
+        by: this.auth.getCurrentUser().username,
+        amount: added,
+        note: note.trim()
+      };
+    }
+
     item.updatedAt = new Date().toISOString();
 
-    // Broadcast refill notification to all users as required
+    const specText = specDescription ? ` [${specDescription}]` : "";
     this.createNotification({
       type: "refill",
       priority: "normal",
       title: `Stock Refilled: ${item.name}`,
-      message: `${this.auth.getCurrentUser().fullName} has refilled ${item.name} by +${added} ${item.unit}. New total stock is ${item.quantity} ${item.unit}.${note ? ` (Note: ${note})` : ''}`,
+      message: `${this.auth.getCurrentUser().fullName} refilled ${item.name}${specText} by +${added} ${item.unit}. Available for this specification: ${variantTotal} ${item.unit}.${note ? ` (Note: ${note})` : ''}`,
       metadata: {
         itemId: item.id,
         itemName: item.name,
+        spec: specDescription,
         amount: added,
-        newTotal: item.quantity,
+        newTotal: variantTotal,
         refilledBy: this.auth.getCurrentUser().fullName
       }
     });
 
-    await this.saveDb(db, `Refilled ${item.name} (+${added}) by @${this.auth.getCurrentUser().username}`);
+    await this.saveDb(db, `Refilled ${item.name}${specText} (+${added}) by @${this.auth.getCurrentUser().username}`);
     return item;
   }
 
-  // --- Admin/Owner: Dynamic Attribute (Schema) Management ---
-  // Add a new customizable detail/dropdown to an item (e.g. "Pressure Gauge Level")
+  // --- Dynamic Schema Management (Add/Remove Custom Dropdowns) ---
   async addAttributeToItem(itemId, attrData) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can modify item schemas.");
     const db = this.getDb();
@@ -195,28 +272,6 @@ class InventoryManager {
     return item;
   }
 
-  // Update an existing attribute (e.g. rename it)
-  async updateAttribute(itemId, attrId, updates) {
-    if (!this.auth.isAdmin()) throw new Error("Only Managers can edit attribute schemas.");
-    const db = this.getDb();
-    const item = db.items.find(it => it.id === itemId);
-    if (!item || !item.attributes) throw new Error("Item or attributes not found.");
-
-    const attr = item.attributes.find(a => a.id === attrId);
-    if (!attr) throw new Error("Attribute not found.");
-
-    if (updates.name !== undefined) attr.name = updates.name.trim();
-    if (updates.required !== undefined) attr.required = !!updates.required;
-    if (Array.isArray(updates.options)) {
-      attr.options = updates.options.map(o => o.trim()).filter(Boolean);
-    }
-    item.updatedAt = new Date().toISOString();
-
-    await this.saveDb(db, `Updated attribute "${attr.name}" on ${item.name}`);
-    return item;
-  }
-
-  // Add an option parameter to a dropdown attribute (e.g., add "Ultra-Low" to Pressure Level)
   async addOptionToAttribute(itemId, attrId, newOption) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can edit options.");
     const db = this.getDb();
@@ -237,7 +292,6 @@ class InventoryManager {
     return item;
   }
 
-  // Remove an option parameter from a dropdown attribute
   async removeOptionFromAttribute(itemId, attrId, optionIndex) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can remove options.");
     const db = this.getDb();
@@ -255,7 +309,6 @@ class InventoryManager {
     return item;
   }
 
-  // Remove an entire dynamic attribute from an item
   async removeAttributeFromItem(itemId, attrId) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can remove attributes.");
     const db = this.getDb();
@@ -271,7 +324,6 @@ class InventoryManager {
     return item;
   }
 
-  // Delete item from inventory
   async deleteItem(itemId) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers can delete inventory items.");
     const db = this.getDb();
@@ -283,8 +335,7 @@ class InventoryManager {
     return true;
   }
 
-  // --- Surgical Usage Submission (For Regular Users & Admins) ---
-  // Atomically logs operation, deducts inventory, and raises alarms if stock drops to or below threshold
+  // --- Surgical Usage Submission (Combines Feature Deductions Atomically) ---
   async submitSurgicalConsumption(report) {
     const user = this.auth.getCurrentUser();
     if (!user) throw new Error("Authentication required.");
@@ -302,44 +353,76 @@ class InventoryManager {
       throw new Error("Attending specialist care selection is required.");
     }
 
-    // Step 1: Pre-validate stock availability for all items in surgical tray
+    // Pre-validate stock for every specific item and its exact feature combination
     for (const trayItem of report.items) {
       const dbItem = db.items.find(it => it.id === trayItem.itemId);
       if (!dbItem) {
-        throw new Error(`Item "${trayItem.itemName || trayItem.itemId}" does not exist in inventory.`);
+        throw new Error(`Item "${trayItem.itemName}" does not exist in inventory.`);
       }
-      if (dbItem.quantity < trayItem.quantity) {
-        throw new Error(
-          `Insufficient stock for "${dbItem.name}". Requested: ${trayItem.quantity}, Available in storage: ${dbItem.quantity} ${dbItem.unit}.`
-        );
+
+      const hasAttributes = dbItem.attributes && dbItem.attributes.length > 0;
+      if (hasAttributes) {
+        const variant = this.findVariant(dbItem, trayItem.selectedAttributes);
+        const specText = Object.entries(trayItem.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+        if (!variant) {
+          throw new Error(
+            `The requested combination (${specText || 'None'}) for "${dbItem.name}" is not available in storage (0 in stock).`
+          );
+        }
+        if (variant.quantity < trayItem.quantity) {
+          throw new Error(
+            `Insufficient stock for "${dbItem.name}" [${specText}]. Requested: ${trayItem.quantity}, Available: ${variant.quantity} ${dbItem.unit}.`
+          );
+        }
+      } else {
+        const total = parseInt(dbItem.quantity, 10) || 0;
+        if (total < trayItem.quantity) {
+          throw new Error(
+            `Insufficient stock for "${dbItem.name}". Requested: ${trayItem.quantity}, Available: ${total} ${dbItem.unit}.`
+          );
+        }
       }
     }
 
-    // Step 2: Deduct stock and check alarm thresholds
+    // Deduct stock per variant and trigger low-stock alarms
     const lowStockAlerts = [];
     const consumedSummary = [];
 
     for (const trayItem of report.items) {
       const dbItem = db.items.find(it => it.id === trayItem.itemId);
-      dbItem.quantity -= trayItem.quantity;
+      const hasAttributes = dbItem.attributes && dbItem.attributes.length > 0;
+      let remainingStock = 0;
+      let threshold = dbItem.lowStockThreshold || 2;
+      let specText = "";
+
+      if (hasAttributes) {
+        const variant = this.findVariant(dbItem, trayItem.selectedAttributes);
+        variant.quantity -= trayItem.quantity;
+        remainingStock = variant.quantity;
+        threshold = variant.lowStockThreshold || threshold;
+        specText = Object.entries(trayItem.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+      } else {
+        dbItem.quantity -= trayItem.quantity;
+        remainingStock = dbItem.quantity;
+      }
+
       dbItem.updatedAt = new Date().toISOString();
 
-      const threshold = dbItem.lowStockThreshold !== undefined ? dbItem.lowStockThreshold : window.NEURO_CONFIG.CONFIG.defaultAlarmThreshold;
-
-      // Check if stock has reached or dropped below alarm threshold
-      if (dbItem.quantity <= threshold) {
+      if (remainingStock <= threshold) {
         lowStockAlerts.push({
-          item: dbItem,
-          isOut: dbItem.quantity <= 0,
-          remaining: dbItem.quantity,
-          threshold: threshold
+          itemName: dbItem.name,
+          specText,
+          remaining: remainingStock,
+          threshold,
+          unit: dbItem.unit,
+          isOut: remainingStock <= 0
         });
       }
 
-      consumedSummary.push(`${trayItem.quantity}x ${dbItem.name}`);
+      consumedSummary.push(`${trayItem.quantity}x ${dbItem.name}${specText ? ` (${specText})` : ''}`);
     }
 
-    // Step 3: Create immutable surgical log entry
+    // Record immutable surgical log
     if (!db.usageLogs) db.usageLogs = [];
 
     const opDate = report.operationDate || new Date().toISOString().split("T")[0];
@@ -371,23 +454,24 @@ class InventoryManager {
 
     db.usageLogs.unshift(logEntry);
 
-    // Step 4: Fire low-stock alarms/notifications if any items dropped below threshold
+    // Fire alarms for low/out-of-stock feature combinations
     for (const alert of lowStockAlerts) {
+      const specLabel = alert.specText ? ` [${alert.specText}]` : "";
       if (alert.isOut) {
         this.createNotification({
           type: "out_of_stock",
           priority: "critical",
-          title: `OUT OF STOCK: ${alert.item.name}`,
-          message: `CRITICAL ALERT: ${alert.item.name} has run out of stock (0 remaining) after operation on ${report.patientName}. Urgent restock needed!`,
-          metadata: { itemId: alert.item.id, currentQty: 0 }
+          title: `OUT OF STOCK: ${alert.itemName}`,
+          message: `CRITICAL ALERT: ${alert.itemName}${specLabel} has run out of stock (0 remaining) after surgery on ${report.patientName}. Urgent restock needed!`,
+          metadata: { itemName: alert.itemName, spec: alert.specText, currentQty: 0 }
         });
       } else {
         this.createNotification({
           type: "low_stock",
           priority: "warning",
-          title: `Low Stock Alarm: ${alert.item.name}`,
-          message: `Warning: ${alert.item.name} has only ${alert.remaining} ${alert.item.unit} remaining in storage (Alarm threshold: ${alert.threshold}). Refill advised.`,
-          metadata: { itemId: alert.item.id, currentQty: alert.remaining, threshold: alert.threshold }
+          title: `Low Stock Alarm: ${alert.itemName}`,
+          message: `Warning: ${alert.itemName}${specLabel} has only ${alert.remaining} ${alert.unit} remaining in storage (Threshold: ${alert.threshold}). Refill advised.`,
+          metadata: { itemName: alert.itemName, spec: alert.specText, currentQty: alert.remaining, threshold: alert.threshold }
         });
       }
     }
@@ -396,7 +480,6 @@ class InventoryManager {
     return logEntry;
   }
 
-  // Helper to append a notification to the database
   createNotification(notifData) {
     const db = this.getDb();
     if (!db.notifications) db.notifications = [];
@@ -414,29 +497,21 @@ class InventoryManager {
     window.dispatchEvent(new CustomEvent("neuroware:new_notification", { detail: notif }));
   }
 
-  // --- Usage History & Filtering ---
   getUsageLogs(filters = {}) {
     const db = this.getDb();
     if (!db || !db.usageLogs) return [];
 
     let logs = [...db.usageLogs];
 
-    // Filter by specific day (YYYY-MM-DD)
     if (filters.date) {
       logs = logs.filter(log => log.date === filters.date);
     }
-
-    // Filter by month (YYYY-MM)
     if (filters.month) {
       logs = logs.filter(log => log.date.startsWith(filters.month));
     }
-
-    // Filter by Specialist
     if (filters.specialist && filters.specialist !== "all") {
       logs = logs.filter(log => log.specialistCare === filters.specialist);
     }
-
-    // Filter by Search Query (patient, procedure, surgeon, item)
     if (filters.search && filters.search.trim()) {
       const q = filters.search.toLowerCase().trim();
       logs = logs.filter(log => 
@@ -445,62 +520,14 @@ class InventoryManager {
         (log.specialistCare && log.specialistCare.toLowerCase().includes(q)) ||
         (log.loggedBy && log.loggedBy.fullName.toLowerCase().includes(q)) ||
         (log.bedNumber && log.bedNumber.toLowerCase().includes(q)) ||
-        (log.items && log.items.some(it => it.itemName.toLowerCase().includes(q)))
+        (log.items && log.items.some(it => 
+          it.itemName.toLowerCase().includes(q) ||
+          Object.values(it.selectedAttributes || {}).some(v => String(v).toLowerCase().includes(q))
+        ))
       );
     }
 
     return logs;
-  }
-
-  // Summary statistics for reports
-  getUsageStatistics(period = "all") {
-    const db = this.getDb();
-    const logs = db.usageLogs || [];
-    const items = db.items || [];
-
-    const now = new Date();
-    const todayStr = now.toISOString().split("T")[0];
-    const currentMonthStr = todayStr.substring(0, 7);
-
-    let filtered = logs;
-    if (period === "today") {
-      filtered = logs.filter(l => l.date === todayStr);
-    } else if (period === "month") {
-      filtered = logs.filter(l => l.date.startsWith(currentMonthStr));
-    }
-
-    let totalItemsConsumed = 0;
-    const itemCounts = {};
-    const specialistCounts = {};
-
-    filtered.forEach(log => {
-      if (log.specialistCare) {
-        specialistCounts[log.specialistCare] = (specialistCounts[log.specialistCare] || 0) + 1;
-      }
-      if (log.items) {
-        log.items.forEach(it => {
-          totalItemsConsumed += (it.quantity || 1);
-          itemCounts[it.itemName] = (itemCounts[it.itemName] || 0) + (it.quantity || 1);
-        });
-      }
-    });
-
-    const topItems = Object.entries(itemCounts)
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count);
-
-    const lowStockCount = items.filter(it => it.quantity <= (it.lowStockThreshold || 2)).length;
-    const outOfStockCount = items.filter(it => it.quantity <= 0).length;
-
-    return {
-      totalSurgeries: filtered.length,
-      totalItemsConsumed,
-      topItems,
-      specialistCounts,
-      lowStockCount,
-      outOfStockCount,
-      totalCatalogItems: items.length
-    };
   }
 }
 

@@ -52,7 +52,6 @@ class AuthManager {
     return this.currentUser && this.currentUser.role === window.NEURO_CONFIG.ROLES.REGULAR;
   }
 
-  // Simple string hash for password verification in frontend
   hashPassword(str) {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
@@ -63,7 +62,6 @@ class AuthManager {
     return "h_" + Math.abs(hash).toString(16);
   }
 
-  // Authenticate user with password and device validation
   async login(username, password) {
     const db = this.getDb();
     if (!db || !db.users) {
@@ -77,7 +75,6 @@ class AuthManager {
       throw new Error("Invalid username or password.");
     }
 
-    // Check password (supports plain check or hash check)
     const valid = (user.passwordPlain && user.passwordPlain === password) ||
                   (user.passwordHash && user.passwordHash === this.hashPassword(password));
 
@@ -85,7 +82,6 @@ class AuthManager {
       throw new Error("Invalid username or password.");
     }
 
-    // Check account status
     if (user.status === "pending") {
       throw new Error("Account Pending Approval: The Storage Director (Admin/Owner) must review and approve your registration before you can log in.");
     }
@@ -94,23 +90,21 @@ class AuthManager {
       throw new Error("Account Access Denied: Your registration request was rejected by the inventory administration.");
     }
 
-    // --- Device Lock Enforcement ---
+    // Device Lock Enforcement
     const currentDevice = this.storage.initDeviceFingerprint();
     const currentDeviceId = currentDevice.id;
     if (!user.registeredDevices) user.registeredDevices = [];
 
     const isDeviceKnown = user.registeredDevices.some(d => d.id === currentDeviceId);
-    const limit = user.deviceLimit; // 'unlimited' or number 1, 2, 3...
+    const limit = user.deviceLimit;
 
     if (isDeviceKnown) {
-      // Device is already authorized, update last active
       const devObj = user.registeredDevices.find(d => d.id === currentDeviceId);
       if (devObj) {
         devObj.lastActive = new Date().toISOString();
         devObj.name = currentDevice.name;
       }
     } else {
-      // New device attempting to log in
       if (limit === "unlimited") {
         user.registeredDevices.push({
           id: currentDeviceId,
@@ -122,7 +116,6 @@ class AuthManager {
       } else {
         const allowedCount = parseInt(limit, 10) || 1;
         if (user.registeredDevices.length < allowedCount) {
-          // Allowed to register this new device
           user.registeredDevices.push({
             id: currentDeviceId,
             name: currentDevice.name,
@@ -131,7 +124,6 @@ class AuthManager {
             lastActive: new Date().toISOString()
           });
         } else {
-          // Device limit reached! Block login
           const registeredList = user.registeredDevices.map(d => `• ${d.name} (Registered: ${new Date(d.registeredAt).toLocaleDateString()})`).join("\n");
           throw new Error(
             `Device Lock Active! This account is restricted to ${allowedCount} authorized device(s).\n\n` +
@@ -143,10 +135,8 @@ class AuthManager {
       }
     }
 
-    // Save updated user device record to database
     await this.saveDb(db, `User login and device check: @${user.username}`);
 
-    // Create session
     const sessionUser = {
       id: user.id,
       username: user.username,
@@ -162,7 +152,6 @@ class AuthManager {
     return sessionUser;
   }
 
-  // Submit sign-up request (always created as pending)
   async signup(data) {
     const db = this.getDb();
     if (!db.users) db.users = [];
@@ -181,9 +170,9 @@ class AuthManager {
       passwordPlain: data.password,
       passwordHash: this.hashPassword(data.password),
       fullName: data.fullName.trim(),
-      role: window.NEURO_CONFIG.ROLES.REGULAR, // Default role until approved
+      role: window.NEURO_CONFIG.ROLES.REGULAR,
       status: "pending",
-      deviceLimit: 1, // Default single device lock until owner/admin edits
+      deviceLimit: 1,
       registeredDevices: [
         {
           id: currentDevice.id,
@@ -199,20 +188,18 @@ class AuthManager {
 
     db.users.push(newUser);
 
-    // Create notification for Owner & Admins
     if (!db.notifications) db.notifications = [];
     const notif = {
       id: "notif-" + Date.now().toString(36),
       type: "signup_request",
       priority: "warning",
       title: "New Sign-up Request: " + newUser.fullName,
-      message: `Dr./Staff ${newUser.fullName} (@${newUser.username}) requested registration. Needs Owner/Admin approval and device limit review.`,
+      message: `Staff ${newUser.fullName} (@${newUser.username}) requested registration. Needs approval and device limit review.`,
       timestamp: new Date().toISOString(),
       readBy: [],
       metadata: {
         userId: newUser.id,
-        username: newUser.username,
-        requestedRole: data.requestedRole || "REGULAR"
+        username: newUser.username
       }
     };
     db.notifications.unshift(notif);
@@ -221,7 +208,6 @@ class AuthManager {
     return newUser;
   }
 
-  // Admin/Owner: Approve a pending user
   async approveUser(userId, role, deviceLimit) {
     if (!this.isAdmin()) throw new Error("Only Managers (Owner/Admin) can approve users.");
     const db = this.getDb();
@@ -232,7 +218,6 @@ class AuthManager {
     if (role) user.role = role;
     if (deviceLimit !== undefined) user.deviceLimit = deviceLimit;
 
-    // Add notification
     const notif = {
       id: "notif-" + Date.now().toString(36),
       type: "user_approved",
@@ -249,7 +234,6 @@ class AuthManager {
     return user;
   }
 
-  // Admin/Owner: Reject a user
   async rejectUser(userId, reason = "Rejected by administration") {
     if (!this.isAdmin()) throw new Error("Only Managers (Owner/Admin) can reject users.");
     const db = this.getDb();
@@ -263,30 +247,59 @@ class AuthManager {
     return user;
   }
 
-  // Admin/Owner: Update user role and device limit
+  // Update user access: Owner and Admin can edit user parameters
+  // When Owner edits, can also edit username, fullName, phone, role, device limit, password
   async updateUserAccess(userId, updates) {
     if (!this.isAdmin()) throw new Error("Unauthorized.");
     const db = this.getDb();
     const user = db.users.find(u => u.id === userId);
     if (!user) throw new Error("User not found.");
 
-    // Only OWNER can change role to OWNER or demote an OWNER
     if (updates.role && updates.role === window.NEURO_CONFIG.ROLES.OWNER && !this.isOwner()) {
       throw new Error("Only the Storage OWNER can assign the OWNER role.");
     }
 
-    if (updates.role) user.role = updates.role;
-    if (updates.deviceLimit !== undefined) user.deviceLimit = updates.deviceLimit;
-    if (updates.passwordPlain) {
-      user.passwordPlain = updates.passwordPlain;
-      user.passwordHash = this.hashPassword(updates.passwordPlain);
+    // Editable Full Name
+    if (updates.fullName !== undefined && updates.fullName.trim()) {
+      user.fullName = updates.fullName.trim();
     }
 
-    await this.saveDb(db, `Updated access permissions for @${user.username}`);
+    // Editable Username (with uniqueness check)
+    if (updates.username !== undefined && updates.username.trim()) {
+      const cleanNewUser = updates.username.trim().toLowerCase();
+      if (cleanNewUser !== user.username.toLowerCase()) {
+        const conflict = db.users.find(u => u.id !== userId && u.username.toLowerCase() === cleanNewUser);
+        if (conflict) {
+          throw new Error(`Username "@${cleanNewUser}" is already taken by another user.`);
+        }
+        user.username = cleanNewUser;
+      }
+    }
+
+    if (updates.phone !== undefined) {
+      user.phone = updates.phone.trim();
+    }
+
+    if (updates.role) user.role = updates.role;
+    if (updates.deviceLimit !== undefined) user.deviceLimit = updates.deviceLimit;
+    if (updates.passwordPlain && updates.passwordPlain.trim()) {
+      user.passwordPlain = updates.passwordPlain.trim();
+      user.passwordHash = this.hashPassword(user.passwordPlain);
+    }
+
+    // If active session belongs to this user, update session details
+    if (this.currentUser && this.currentUser.id === user.id) {
+      this.currentUser.fullName = user.fullName;
+      this.currentUser.username = user.username;
+      this.currentUser.role = user.role;
+      this.currentUser.deviceLimit = user.deviceLimit;
+      this.saveSession(this.currentUser);
+    }
+
+    await this.saveDb(db, `Updated user profile and access: @${user.username}`);
     return user;
   }
 
-  // Admin/Owner: Reset registered devices for a user (allowing them to bind new phone)
   async resetUserDevices(userId) {
     if (!this.isAdmin()) throw new Error("Only Managers can reset registered devices.");
     const db = this.getDb();
@@ -298,7 +311,6 @@ class AuthManager {
     return user;
   }
 
-  // Delete user (cannot delete owner)
   async deleteUser(userId) {
     if (!this.isAdmin()) throw new Error("Unauthorized.");
     const db = this.getDb();

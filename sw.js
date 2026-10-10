@@ -1,9 +1,10 @@
 /**
  * NeuroWare Service Worker
- * Offline Cache & Resilient Storage
+ * Version: 2.0.0
+ * Resilient Offline Storage & Active Auto-Updating Engine
  */
 
-const CACHE_NAME = 'neuroware-v1';
+const CACHE_NAME = 'neuroware-v2.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -19,14 +20,17 @@ const ASSETS_TO_CACHE = [
   './assets/icon.svg'
 ];
 
+// Install: Cache all core assets
 self.addEventListener('install', (event) => {
+  self.skipWaiting(); // Instantly activate new service worker
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE).catch(err => console.warn('Cache add warning:', err));
-    }).then(() => self.skipWaiting())
+      return cache.addAll(ASSETS_TO_CACHE).catch(err => console.warn('PWA caching note:', err));
+    })
   );
 });
 
+// Activate: Clean old caches and claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -37,24 +41,31 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// Message listener to trigger immediate skipWaiting from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+// Fetch: Stale-while-revalidate for local assets, network-first for remote GitHub sync
 self.addEventListener('fetch', (event) => {
-  // Pass through GitHub API requests directly to network
+  // Always fetch live GitHub API calls directly from network
   if (event.request.url.includes('api.github.com')) {
     return;
   }
 
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Fetch background update
-        fetch(event.request).then((networkResponse) => {
-          if (networkResponse && networkResponse.status === 200) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
-          }
-        }).catch(() => {});
-        return cachedResponse;
-      }
-      return fetch(event.request);
+      // Fetch fresh copy in background to update cache
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
+        }
+        return networkResponse;
+      }).catch(() => cachedResponse);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

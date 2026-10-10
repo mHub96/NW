@@ -5,75 +5,59 @@
 
 ---
 
-## 🌟 Key Features
+## 🌟 Key Capabilities & Updated Architecture
 
-### 1. Multi-Role Authentication & Access Control
-- **OWNER (Storage Director / Chief Neurosurgeon)**: Full administrative authority, approval/rejection of registration requests, assignment of device locks, promotion/demotion of admins, database audit.
-- **ADMIN (OR Inventory Managers)**: Storage editor, refill operations with automated broadcast alerts, dynamic item schema configuration, sign-up approvals, operative reports.
-- **REGULAR (Neurosurgeons, Residents, Scrub Nurses)**: Strictly restricted to reporting surgical consumption in their procedures (patient details, specialist care, beds, dynamic item parameters), browsing storage stock levels, and viewing operative history.
+### 1. Multi-Variant / Feature Combination Storage Values
+- **Separate Storage Quantities per Specification**:
+  - Surgical items with dynamic options (e.g., **VP Shunts**, **Pedicle Screws**, **Surgicel**, **FloSeal**) do not merely share a single flat count. Every combination of parameters (e.g., *Burr-Hole Design + High Pressure + Integra Codman* vs *Flat-Bottom Design + Low Pressure + B-Braun*) has its own distinct quantity in storage.
+- **Specification-Targeted Refills**:
+  - When the Owner or Admin refills an item, they specify which exact combination of parameters is being added (or define a new specification).
+  - The refill broadcast specifically notifies all surgeons which specification was refilled and the updated count for that exact device.
+- **Intraoperative Stock Verification**:
+  - In the Surgery portal, as a surgeon selects each dynamic parameter, the system displays real-time stock feedback for that exact combination:
+    - `🟢 In Storage: X available for this exact combination`
+    - `🔴 OUT OF STOCK: 0 available for this specification in storage!`
+  - Logging an operation atomically deducts the count for that exact specification and triggers low-stock alerts if that specific device reaches &le; 2 in storage.
 
-### 2. Hardware Device Lock System
+### 2. Multi-Role Authentication & Access Control
+- **OWNER (Storage Director / Chief Neurosurgeon)**:
+  - Full administrative authority, approval/rejection of registration requests, assignment of device locks.
+  - **Comprehensive User Editing**: The Owner can edit any user's **Full Name**, **Username (@username)**, **Phone**, **Role**, **Device Lock Policy**, and **Password**.
+- **ADMIN (OR Inventory Managers)**: Storage editor, specification-level refills, dynamic parameter management, sign-up approvals, and operative reports.
+- **REGULAR (Neurosurgeons, Residents, Scrub Nurses)**: Access is strictly limited to reporting intraoperative item consumption, checking current stock, and viewing surgical history.
+
+### 3. Hardware Device Lock System
 - Protects departmental inventory from unauthorized sharing.
 - Managers can lock accounts to:
-  - **Single Device (1 Device)**: Locks the user account to their specific iPhone/iPad or phone. Unrecognized devices are blocked with an alert.
+  - **Single Device (1 Device)**: Locks the doctor's account to their specific phone/tablet.
   - **Custom Limit (e.g., 2 or 3 Devices)**: Allows e.g. personal mobile + OR theatre tablet.
   - **Unlimited Devices**: For department directors and emergency accounts.
 - **Device Reset Feature**: Managers can reset device bindings with 1 click if a surgeon gets a new phone.
 
-### 3. Dynamic Item Schema & Custom Parameters Builder
-- Every surgical tool or implant can have fully customizable dynamic dropdowns and parameters.
-- **Example — VP Shunt System**:
-  - Pressure Gauge Level: *Low (10-50 mmH2O), Medium (50-90 mmH2O), High (90-130 mmH2O), Programmable (1-5)*
-  - Manufacturer: *Integra Codman, B. Braun, Medtronic Strata, Sophysa*
-  - Type / Body: *Burr Hole Design, Flat Bottom Design, Unitized*
-  - Anti-Siphon Mechanism: *Integrated, Diaphragm, None*
-- Admins and Owners can add, rename, reorder, or remove parameters and dropdown options directly from the UI.
-
-### 4. Surgical Consumption Logging
-- Seamless operative entry:
-  - Patient Full Name, Age, Gender
-  - Under Specialist Care (*on his beds*) — dropdown of attending neurosurgeons
-  - Bed / Ward / Room (e.g. Ward 3 - Bed 12 / ICU)
-  - Date of Operation (defaults to today's date)
-  - Consumed items selector with dynamic specifications and live stock limits
-  - Multi-item surgical tray summary with batch/lot tracking
-- On submission:
-  - Stock is atomically deducted.
-  - Real-time alarms are triggered if remaining stock falls at or below threshold.
-  - Changes sync instantly to GitHub and local cache.
-
-### 5. Automated Notification & Low-Stock Alarm System
-- **Refill Broadcasts**: When an admin refills an item by `+N`, all neurosurgeons receive an in-app alert with the refilled amount and updated stock.
-- **Low-Stock Alarms**: Triggered when stock &le; threshold (default is 2, configurable per item).
-- **Distinct Visual Coding**: Items running low or out of stock glow with distinct warning colors (amber pulse and red borders) in the catalog and reporting portals.
-- **Audio Chimes**: Subtle Apple-style audio tones on notifications.
-
-### 6. Operative Logbook & Usage History
-- Interactive Day & Month Selector: Filter reports by specific day or view all.
-- Filter by attending neurosurgeon specialist.
-- Search by patient name, procedure, or implant.
+### 4. Clean Operative Logbook & Usage History
+- Clean slate operations log ready for live shift recording.
+- Filter procedures performed on a specific day or across an entire month.
+- Filter by attending neurosurgeon specialist (*on his beds*).
 - 1-click CSV export and print summary.
 
-### 7. iPhone App Design & Day/Night Mode
-- Built following Apple Human Interface Guidelines (HIG):
-  - Frosted glass navigation bars and floating bottom tab bar.
-  - Smooth segmented controls and bottom sheets.
-  - Dual viewing modes: realistic iPhone 16 Pro chassis on desktop or full-screen theatre station mode.
-  - Day (iOS Light) and Night (iOS OLED Dark) themes.
+### 5. Automated Notification & Low-Stock Alarm System
+- **Refill Broadcasts**: Alerts all neurosurgeons with the refilled amount and updated stock for that specific combination.
+- **Low-Stock Alarms**: Triggered when stock drops to or below the alarm threshold (default is **2**, customizable).
+- **Distinct Visual Coding**: Items running low or out of stock glow with distinct animated amber/red warning borders and badges.
+- **iOS Audio Chimes**: Synthesized Apple-style chimes sound on refill updates and low-stock alerts.
 
-### 8. Cloud Synchronization Engine
-- Integrated with GitHub REST API (`mHub96/NW`) using safe chunked tokens.
-- Offline-first caching with automatic background synchronization.
+### 6. PWA Auto-Updating Engine & Luxury 3D Icon
+- **Active Auto-Updating**: The Progressive Web App periodically checks for updates and immediately updates its cache and reload whenever a new version is pushed.
+- **Luxury 3D "Brain as Treasure Chest" Icon**: An ornate 3D icon depicting the cerebral cortex sculpted as an antique treasure chest with gold gyri, brass rivets, mahogany base, glowing cyan neural interior, and ruby/sapphire escutcheon lock.
 
 ---
 
-## ⚡ Default Accounts for Verification
+## ⚡ Default Accounts
 
-| Role | Username | Password | Device Limit |
+| Role | Username | Password | Device Limit Policy |
 |---|---|---|---|
-| **OWNER** | `owner` | `Owner2026!` | Unlimited |
-| **ADMIN** | `admin` | `Admin2026!` | Unlimited |
-| **REGULAR** | `dr_kareem` | `Kareem2026!` | 1 Device |
+| **OWNER** | `owner` | `Owner2026!` | Unlimited Devices |
+| **ADMIN** | `admin` | `Admin2026!` | Unlimited Devices |
+| **REGULAR** | `dr_kareem` | `Kareem2026!` | 1 Device (Single Device Lock) |
 | **REGULAR** | `dr_anwar` | `Anwar2026!` | 2 Devices |
 | **REGULAR** | `resident_ali` | `Resident2026!` | 1 Device |
-| *Pending* | `dr_sarah` | `Sarah2026!` | 1 Device (Awaiting approval) |
