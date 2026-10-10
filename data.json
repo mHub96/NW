@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-10T22:39:13.318Z",
+    "lastUpdated": "2026-10-10T22:41:57.609Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -110,7 +110,15 @@
       "role": "ADMIN",
       "status": "approved",
       "deviceLimit": "unlimited",
-      "registeredDevices": [],
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-10T22:41:57.608Z",
+          "lastActive": "2026-10-10T22:41:57.608Z"
+        }
+      ],
       "phone": "+9647804080071",
       "createdAt": "2026-09-02T09:00:00.000Z"
     },
