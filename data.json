@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-10T22:32:55.875Z",
+    "lastUpdated": "2026-10-10T22:33:47.531Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -181,8 +181,8 @@
       "passwordHash": "h_52a1175c",
       "fullName": "Dr. Rafid Khalid",
       "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
+      "status": "approved",
+      "deviceLimit": "1",
       "registeredDevices": [
         {
           "id": "dev-w9d20x9-mv2ywklv",
@@ -891,6 +891,20 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv2z0zka",
+      "type": "user_approved",
+      "priority": "normal",
+      "title": "User Approved: Dr. Rafid Khalid",
+      "message": "Dr. Rafid Khalid (@rafid) was approved as REGULAR with 1 device limit by Dr. Haidar (Chief Neurosurgeon / Storage Director).",
+      "timestamp": "2026-10-10T22:33:47.530Z",
+      "readBy": [
+        "owner"
+      ],
+      "metadata": {
+        "userId": "usr-mv2yydsa"
+      }
+    },
     {
       "id": "notif-mv2yydsa",
       "type": "signup_request",
