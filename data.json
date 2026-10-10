@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-11T00:30:00.000Z",
+    "lastUpdated": "2026-10-10T22:17:40.753Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -11,16 +11,66 @@
     }
   },
   "specialists": [
-    { "id": "spec-1", "name": "د. احمد حقي", "title": "Consultant Neurosurgeon", "active": true },
-    { "id": "spec-2", "name": "د. احمد عبدالله", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-3", "name": "د. احمد كريم", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-4", "name": "د. اديان محمد", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-5", "name": "د. الاء اسماعيل", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-6", "name": "د. الاء حسن", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-7", "name": "د. انور ماجد", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-8", "name": "د. حيدر محمد", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-9", "name": "د. علي الموسوي", "title": "Specialist Neurosurgeon", "active": true },
-    { "id": "spec-10", "name": "د. عمر فاروق", "title": "Specialist Neurosurgeon", "active": true }
+    {
+      "id": "spec-1",
+      "name": "د. احمد حقي",
+      "title": "Consultant Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-2",
+      "name": "د. احمد عبدالله",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-3",
+      "name": "د. احمد كريم",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-4",
+      "name": "د. اديان محمد",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-5",
+      "name": "د. الاء اسماعيل",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-6",
+      "name": "د. الاء حسن",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-7",
+      "name": "د. انور ماجد",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-8",
+      "name": "د. حيدر محمد",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-9",
+      "name": "د. علي الموسوي",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    },
+    {
+      "id": "spec-10",
+      "name": "د. عمر فاروق",
+      "title": "Specialist Neurosurgeon",
+      "active": true
+    }
   ],
   "users": [
     {
@@ -58,7 +108,15 @@
       "role": "REGULAR",
       "status": "approved",
       "deviceLimit": 1,
-      "registeredDevices": [],
+      "registeredDevices": [
+        {
+          "id": "dev-6hhjv60-mv2yg8gz",
+          "name": "Apple iPhone (iOS Safari)",
+          "platform": "iPhone",
+          "registeredAt": "2026-10-10T22:17:40.752Z",
+          "lastActive": "2026-10-10T22:17:40.752Z"
+        }
+      ],
       "phone": "+9647739862206",
       "createdAt": "2026-09-10T11:00:00.000Z"
     },
@@ -804,8 +862,14 @@
       "title": "Critical Low Stock: Surgicel Absorbable Hemostat",
       "message": "Only 1 Box left in storage (Alarm threshold: 2). Immediate restocking required for upcoming neurosurgery shifts.",
       "timestamp": "2026-10-09T18:41:00.000Z",
-      "readBy": ["owner", "admin"],
-      "metadata": { "itemId": "item-surgicel-03", "currentQty": 1 }
+      "readBy": [
+        "owner",
+        "admin"
+      ],
+      "metadata": {
+        "itemId": "item-surgicel-03",
+        "currentQty": 1
+      }
     },
     {
       "id": "notif-002",
@@ -814,8 +878,13 @@
       "title": "Low Stock Alert: EVD Catheter Kit",
       "message": "External Ventricular Drain (EVD) Catheter Kit has reached 2 kits (Threshold: 3).",
       "timestamp": "2026-10-09T18:41:00.000Z",
-      "readBy": ["owner"],
-      "metadata": { "itemId": "item-evd-02", "currentQty": 2 }
+      "readBy": [
+        "owner"
+      ],
+      "metadata": {
+        "itemId": "item-evd-02",
+        "currentQty": 2
+      }
     },
     {
       "id": "notif-003",
@@ -824,8 +893,17 @@
       "title": "Item Refilled: FloSeal Hemostatic Matrix Kit",
       "message": "Admin Dr. Ahmed refilled FloSeal Hemostatic Matrix Kit by +6 Syringe Kits. Current stock is now 8 Kits.",
       "timestamp": "2026-10-08T11:00:00.000Z",
-      "readBy": ["owner", "admin", "dr_kareem"],
-      "metadata": { "itemId": "item-floseal-04", "refilledBy": "Dr. Ahmed", "amount": 6, "total": 8 }
+      "readBy": [
+        "owner",
+        "admin",
+        "dr_kareem"
+      ],
+      "metadata": {
+        "itemId": "item-floseal-04",
+        "refilledBy": "Dr. Ahmed",
+        "amount": 6,
+        "total": 8
+      }
     },
     {
       "id": "notif-004",
@@ -835,7 +913,10 @@
       "message": "Dr. Sarah Al-Bayati (@dr_sarah) has submitted a sign-up request. Please approve or reject and configure device limits.",
       "timestamp": "2026-10-10T19:40:00.000Z",
       "readBy": [],
-      "metadata": { "userId": "usr-pending-01", "username": "dr_sarah" }
+      "metadata": {
+        "userId": "usr-pending-01",
+        "username": "dr_sarah"
+      }
     }
   ]
 }
