@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-10T22:32:27.766Z",
+    "lastUpdated": "2026-10-10T22:32:55.875Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -898,7 +898,9 @@
       "title": "New Sign-up Request: Dr. Rafid Khalid",
       "message": "Dr./Staff Dr. Rafid Khalid (@rafid) requested registration. Needs Owner/Admin approval and device limit review.",
       "timestamp": "2026-10-10T22:31:45.994Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "userId": "usr-mv2yydsa",
         "username": "rafid",
