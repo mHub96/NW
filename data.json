@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:32:41.124Z",
+    "lastUpdated": "2026-10-10T23:32:48.265Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -176,11 +176,12 @@
       "passwordPlain": "Sarah2026!",
       "fullName": "Dr. Sarah Al-Bayati (Neurosurgery Specialist)",
       "role": "REGULAR",
-      "status": "pending",
+      "status": "rejected",
       "deviceLimit": 1,
       "registeredDevices": [],
       "phone": "+9647701112233",
-      "createdAt": "2026-10-10T19:40:00.000Z"
+      "createdAt": "2026-10-10T19:40:00.000Z",
+      "rejectReason": "Rejected by administration"
     },
     {
       "id": "usr-mv2yydsa",
