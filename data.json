@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:32:39.843Z",
+    "lastUpdated": "2026-10-10T23:32:41.124Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -758,7 +758,9 @@
       "title": "Stock Refilled: VP Shunt System",
       "message": "Dr. Haidar (Chief Neurosurgeon / Storage Director) refilled VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Low Pressure (10 - 50 mmH2O), Manufacturer: B. Braun (Miethke proGAV)] by +1 Kits. Available for this specification: 1 Kits. (Note: Hello!)",
       "timestamp": "2026-10-10T23:05:08.631Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "itemId": "item-vpshunt-01",
         "itemName": "VP Shunt System",
