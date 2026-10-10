@@ -15,7 +15,9 @@ const CONFIG = {
   apiUrl: "https://api.github.com",
   backupRepo: "s",
   appName: "NeuroWare",
-  version: "1.0.0",
+  version: "2.2.0",
+  lastUpdated: "2026-10-11",
+  author: "Dr. Mohammed Riyadh",
   defaultAlarmThreshold: 2,
   syncIntervalMs: 45000 // Background polling sync every 45s
 };

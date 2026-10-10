@@ -12,13 +12,115 @@ class NotificationManager {
     this.audioContext = null;
     this.soundEnabled = true;
 
-    // Listen for new notifications
-    window.addEventListener("neuroware:new_notification", (e) => {
-      this.handleIncomingNotification(e.detail);
+    // Auto-prompt or check notification permissions
+    this.checkPermissionStatus();
+  }
+
+  // Check if browser supports and has granted push notification permission
+  hasPermission() {
+    return ("Notification" in window) && Notification.permission === "granted";
+  }
+
+  checkPermissionStatus() {
+    if (!("Notification" in window)) return "unsupported";
+    return Notification.permission; // 'granted', 'denied', 'default'
+  }
+
+  // Prompt user for push notification permission
+  async requestPermission() {
+    if (!("Notification" in window)) {
+      alert("Push notifications are not supported by this browser.");
+      return false;
+    }
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === "granted") {
+        await this.sendPushNotification({
+          id: "push-perm-test",
+          title: "🔔 Push Notifications Active",
+          message: "NeuroWare will deliver shift alarms, refills, and low-stock alerts even when closed.",
+          priority: "normal"
+        });
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.warn("Permission request error:", err);
+      return false;
+    }
+  }
+
+  // Send system push notification via Service Worker (triggers even if tab closed/minimized)
+  async sendPushNotification(notif) {
+    if (!this.hasPermission()) return;
+
+    const title = notif.title || "NeuroWare Alert";
+    const body = notif.message || "Neurosurgical inventory update";
+    const tag = notif.id || ("nw-alert-" + Date.now());
+
+    // 1. Try Service Worker showNotification first (native OS Push)
+    if ("serviceWorker" in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        if (registration && registration.showNotification) {
+          await registration.showNotification(title, {
+            body: body,
+            icon: "./assets/icon.svg",
+            badge: "./assets/icon.svg",
+            vibrate: [250, 100, 250],
+            tag: tag,
+            renotify: true,
+            data: {
+              url: "./",
+              id: notif.id,
+              timestamp: Date.now()
+            }
+          });
+          return;
+        }
+      } catch (swErr) {
+        console.warn("ServiceWorker showNotification note:", swErr);
+      }
+    }
+
+    // 2. Fallback to desktop Notification API
+    try {
+      new Notification(title, {
+        body: body,
+        icon: "./assets/icon.svg",
+        badge: "./assets/icon.svg",
+        vibrate: [250, 100, 250],
+        tag: tag
+      });
+    } catch (e) {
+      console.warn("Desktop notification fallback note:", e);
+    }
+  }
+
+  // User-facing test trigger for settings
+  async testPushNotification() {
+    if (!this.hasPermission()) {
+      const granted = await this.requestPermission();
+      if (!granted) {
+        alert("Push notifications were not granted. Please allow notification permission in your browser settings.");
+        return;
+      }
+    }
+
+    await this.sendPushNotification({
+      id: "test-push-" + Date.now(),
+      title: "🧠 NeuroWare Push Test",
+      message: "OS Push notification delivered successfully! You will receive live shift and inventory updates.",
+      priority: "normal"
     });
   }
 
-  // Play subtle iOS system sound via Web Audio API synth
+  handleIncomingNotification(notif) {
+    this.playChime(notif.priority);
+    this.showToast(notif);
+    this.updateBadges();
+    this.sendPushNotification(notif);
+  }
   playChime(type = "normal") {
     if (!this.soundEnabled) return;
     try {

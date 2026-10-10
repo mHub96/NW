@@ -2466,6 +2466,106 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       </div>
 
+      <!-- Push Notifications Card -->
+      <div class="ios-card">
+        <div class="ios-section-header">
+          <span class="ios-section-title">Push Notifications</span>
+          <span class="stock-badge ${notifications.hasPermission() ? 'healthy' : 'low'}" id="settingsPushStatusBadge">
+            ${notifications.hasPermission() ? '🟢 Active (OS Push)' : '⚠️ Needs Permission'}
+          </span>
+        </div>
+
+        <div style="font-size:12.5px;color:var(--ios-text-secondary);margin-bottom:12px;line-height:1.45;">
+          Get native OS push notifications for shifts, stock refills, and low-stock alarms even when NeuroWare is closed or running in the background.
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="btnEnablePushPerm" class="ios-btn ios-btn-primary ios-btn-sm" style="flex:1.2;">
+            🔔 Enable Push
+          </button>
+          <button type="button" id="btnTestPushAlert" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
+            🧪 Test Notification
+          </button>
+        </div>
+      </div>
+
+      <!-- PWA Installation & Mode Card -->
+      <div class="ios-card">
+        <div class="ios-section-header">
+          <span class="ios-section-title">PWA & Display Mode</span>
+          <span class="stock-badge ${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? 'healthy' : 'secondary'}">
+            ${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) ? '📲 Installed App' : '🌐 Web Browser'}
+          </span>
+        </div>
+
+        <div style="font-size:12.5px;color:var(--ios-text-secondary);margin-bottom:12px;line-height:1.4;">
+          ${(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone) 
+            ? 'NeuroWare is currently running as an independent installed Progressive Web App (PWA).' 
+            : 'NeuroWare is currently running in your web browser. You can install it on your home screen or continue using the browser.'}
+        </div>
+
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="btnSettingsInstallPwa" class="ios-btn ios-btn-primary ios-btn-sm" style="flex:1;">
+            📲 Install PWA
+          </button>
+          <button type="button" id="btnSettingsToggleBanner" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
+            Toggle Install Banner
+          </button>
+        </div>
+      </div>
+
+      <!-- About NeuroWare & Copyrights Card -->
+      <div class="ios-card about-neuroware-card">
+        <div class="ios-section-header">
+          <span class="ios-section-title">About NeuroWare</span>
+          <span class="stock-badge healthy" id="aboutUpdateBadge">v2.2.0</span>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <img src="assets/icon.svg" style="width:52px;height:52px;border-radius:14px;box-shadow:0 6px 16px rgba(0,0,0,0.25);" alt="NW Icon">
+          <div>
+            <div style="font-size:16px;font-weight:800;color:var(--ios-text-primary);">NeuroWare™ Operating Room Suite</div>
+            <div style="font-size:12px;color:var(--ios-text-secondary);">Neurosurgical Inventory, Implants & Shift Logs</div>
+            <div style="font-size:11px;color:var(--ios-blue);font-weight:700;margin-top:2px;">Official Progressive Web App</div>
+          </div>
+        </div>
+
+        <div class="about-info-list" style="font-size:12.5px;color:var(--ios-text-secondary);background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;justify-content:space-between;">
+            <span><strong>Application Version:</strong></span>
+            <span style="font-family:var(--font-mono);font-weight:700;color:var(--ios-text-primary);">v2.2.0</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;">
+            <span><strong>Update Released:</strong></span>
+            <span style="color:var(--ios-text-primary);">October 11, 2026</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <span><strong>Update Status:</strong></span>
+            <span id="aboutUpdateStatusLabel" style="color:var(--ios-green);font-weight:700;">✓ Up to Date</span>
+          </div>
+        </div>
+
+        <button type="button" id="btnCheckForUpdates" class="ios-btn ios-btn-secondary ios-btn-sm" style="width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <span id="checkUpdateIcon">🔄</span> <span id="checkUpdateLabel">Check for Updates</span>
+        </button>
+
+        <!-- Copyright Acknowledgment for Dr. Mohammed Riyadh -->
+        <div style="border-top:1px solid var(--ios-separator);padding-top:14px;text-align:center;">
+          <div style="font-size:12px;color:var(--ios-text-secondary);margin-bottom:3px;">
+            Programmed & Architected by
+          </div>
+          <div style="font-size:16px;font-weight:800;color:var(--ios-blue);letter-spacing:0.3px;">
+            Dr. Mohammed Riyadh
+          </div>
+          <div style="font-size:11.5px;color:var(--ios-text-secondary);margin-top:2px;">
+            Neurosurgeon & Medical Systems Programmer
+          </div>
+          <div style="font-size:11px;color:var(--ios-text-tertiary);margin-top:8px;">
+            Copyright © 2026 Dr. Mohammed Riyadh. All Rights Reserved.
+          </div>
+        </div>
+      </div>
+
       <div class="ios-card">
         <button type="button" id="btnLogoutApp" class="ios-btn ios-btn-danger">
           Sign Out of NeuroWare
@@ -2486,6 +2586,100 @@ document.addEventListener("DOMContentLoaded", async () => {
         btn.textContent = "🔄 Force Cloud Sync Now";
         btn.disabled = false;
       }, 1500);
+    });
+
+    document.getElementById("btnEnablePushPerm")?.addEventListener("click", async () => {
+      const granted = await notifications.requestPermission();
+      renderSettingsView(container);
+    });
+
+    document.getElementById("btnTestPushAlert")?.addEventListener("click", async () => {
+      await notifications.testPushNotification();
+    });
+
+    document.getElementById("btnSettingsInstallPwa")?.addEventListener("click", () => {
+      triggerPwaInstallation();
+    });
+
+    document.getElementById("btnSettingsToggleBanner")?.addEventListener("click", () => {
+      const isDismissed = localStorage.getItem("neuroware_pwa_dismissed") === "true";
+      if (isDismissed) {
+        localStorage.removeItem("neuroware_pwa_dismissed");
+        showPwaBannerIfApplicable();
+        alert("PWA installation banner restored!");
+      } else {
+        localStorage.setItem("neuroware_pwa_dismissed", "true");
+        hidePwaBanner();
+        alert("PWA installation banner hidden. Continuing with web browser option.");
+      }
+    });
+
+    document.getElementById("btnCheckForUpdates")?.addEventListener("click", async () => {
+      const btn = document.getElementById("btnCheckForUpdates");
+      const icon = document.getElementById("checkUpdateIcon");
+      const label = document.getElementById("checkUpdateLabel");
+      const statusLabel = document.getElementById("aboutUpdateStatusLabel");
+
+      btn.disabled = true;
+      if (icon) icon.textContent = "⏳";
+      if (label) label.textContent = "Checking for Updates...";
+
+      try {
+        let updateFound = false;
+
+        // 1. Service Worker update check
+        if ("serviceWorker" in navigator) {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            await reg.update();
+            if (reg.waiting || reg.installing) {
+              updateFound = true;
+            }
+          }
+        }
+
+        // 2. Remote GitHub main commit check
+        try {
+          const res = await fetch(`https://api.github.com/repos/${storage.config.user}/${storage.config.repo}/commits/main`, {
+            cache: "no-store"
+          });
+          if (res.ok) {
+            const commitData = await res.json();
+            const latestSha = commitData.sha ? commitData.sha.substring(0, 7) : "";
+            const lastKnownSha = localStorage.getItem("neuroware_last_sha");
+            if (lastKnownSha && latestSha && lastKnownSha !== latestSha) {
+              updateFound = true;
+            }
+            if (latestSha) localStorage.setItem("neuroware_last_sha", latestSha);
+          }
+        } catch (e) {
+          // Network check fallback
+        }
+
+        if (updateFound) {
+          if (statusLabel) statusLabel.innerHTML = `<span style="color:var(--ios-orange);">🔄 Update Available!</span>`;
+          if (icon) icon.textContent = "🚀";
+          if (label) label.textContent = "Reload to Apply Update";
+          btn.disabled = false;
+          btn.onclick = () => window.location.reload();
+          alert("A newer update of NeuroWare is available! Reloading page to apply...");
+          window.location.reload();
+        } else {
+          if (statusLabel) statusLabel.innerHTML = `<span style="color:var(--ios-green);">✓ Up to Date (v2.2.0)</span>`;
+          if (icon) icon.textContent = "✓";
+          if (label) label.textContent = "Latest Version Installed";
+          setTimeout(() => {
+            btn.disabled = false;
+            if (icon) icon.textContent = "🔄";
+            if (label) label.textContent = "Check for Updates";
+          }, 2500);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        if (icon) icon.textContent = "🔄";
+        if (label) label.textContent = "Check for Updates";
+        alert("Could not complete update check: " + err.message);
+      }
     });
 
     document.getElementById("btnLogoutApp").addEventListener("click", () => {
@@ -2571,8 +2765,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                   Already registered? Back to Sign In
                 </button>
               </div>
-            </form>
           `}
+
+          <!-- Dr. Mohammed Riyadh Copyright Acknowledgment -->
+          <div class="auth-copyright-footer">
+            <div style="font-weight:700;color:var(--ios-text-primary);">NeuroWare™ Operating Room Suite</div>
+            <div style="margin-top:2px;">Developed & Programmed by <strong>Dr. Mohammed Riyadh</strong></div>
+            <div style="font-size:10.5px;color:var(--ios-text-tertiary);margin-top:2px;">© 2026 Dr. Mohammed Riyadh. All Rights Reserved.</div>
+          </div>
         </div>
       `;
 
@@ -2668,7 +2868,82 @@ document.addEventListener("DOMContentLoaded", async () => {
     desktopViewToggle.addEventListener("click", window.toggleDesktopFullscreen);
   }
 
+  // ==========================================================================
+  // PWA INSTALLATION PROMPT & BANNER ENGINE
+  // ==========================================================================
+  window.deferredPwaPrompt = null;
+
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    window.deferredPwaPrompt = e;
+    showPwaBannerIfApplicable();
+  });
+
+  function showPwaBannerIfApplicable() {
+    const banner = document.getElementById("pwaInstallBanner");
+    if (!banner) return;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    const isDismissed = localStorage.getItem("neuroware_pwa_dismissed") === "true";
+
+    if (isStandalone || isDismissed) {
+      banner.style.display = "none";
+      return;
+    }
+
+    banner.style.display = "flex";
+  }
+
+  function hidePwaBanner() {
+    const banner = document.getElementById("pwaInstallBanner");
+    if (banner) banner.style.display = "none";
+  }
+
+  function triggerPwaInstallation() {
+    if (window.deferredPwaPrompt) {
+      window.deferredPwaPrompt.prompt();
+      window.deferredPwaPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === "accepted") {
+          hidePwaBanner();
+        }
+        window.deferredPwaPrompt = null;
+      });
+    } else {
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      const title = document.getElementById("sheetModalTitle");
+      const body = document.getElementById("sheetModalBody");
+      title.textContent = "Install NeuroWare";
+      body.innerHTML = `
+        <div style="text-align:center;padding:12px 6px 20px 6px;">
+          <img src="assets/icon.svg" style="width:58px;height:58px;border-radius:14px;margin-bottom:12px;box-shadow:0 8px 20px rgba(0,0,0,0.25);" alt="NW Icon">
+          <h3 style="margin:0 0 8px 0;font-size:17px;font-weight:800;color:var(--ios-text-primary);">Install as Progressive Web App</h3>
+          <p style="font-size:13px;color:var(--ios-text-secondary);line-height:1.5;margin:0 0 16px 0;">
+            ${isIOS 
+              ? "To install NeuroWare on iOS:<br>1. Tap the Share button ⎋ in Safari.<br>2. Select 'Add to Home Screen' ⊞.<br>3. Tap 'Add' to launch as a standalone app!"
+              : "To install NeuroWare on your device:<br>Open your browser menu (⋮ or ...) and select 'Install app' or 'Add to Home screen' for fast offline-ready neurosurgery shifts access."}
+          </p>
+
+          <button type="button" class="ios-btn ios-btn-primary" onclick="closeModal()">
+            Understood
+          </button>
+        </div>
+      `;
+      openModal();
+    }
+  }
+
+  window.triggerPwaInstallation = triggerPwaInstallation;
+  window.showPwaBannerIfApplicable = showPwaBannerIfApplicable;
+  window.hidePwaBanner = hidePwaBanner;
+
+  document.getElementById("btnPwaInstallAction")?.addEventListener("click", triggerPwaInstallation);
+  document.getElementById("btnPwaDismissAction")?.addEventListener("click", () => {
+    localStorage.setItem("neuroware_pwa_dismissed", "true");
+    hidePwaBanner();
+  });
+
   // 6. Launch Application
   initTheme();
   checkAuthAndRender();
+  showPwaBannerIfApplicable();
 });
+

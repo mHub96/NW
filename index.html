@@ -87,6 +87,21 @@
         </div>
       </header>
 
+      <!-- PWA Installation Offer Banner (Can be hidden / dismissed by user) -->
+      <div id="pwaInstallBanner" class="pwa-install-banner" style="display:none;">
+        <div class="pwa-banner-content">
+          <img src="assets/icon.svg" class="pwa-banner-icon" alt="NW">
+          <div class="pwa-banner-text">
+            <div class="pwa-banner-title">Install NeuroWare App</div>
+            <div class="pwa-banner-desc">Add to Home Screen for fast offline access & shift alerts</div>
+          </div>
+        </div>
+        <div class="pwa-banner-actions">
+          <button type="button" id="btnPwaInstallAction" class="pwa-btn-install">📲 Install App</button>
+          <button type="button" id="btnPwaDismissAction" class="pwa-btn-dismiss" title="Continue in Web Browser">Continue in Browser</button>
+        </div>
+      </div>
+
       <!-- App Screen Content (Dynamic per tab) -->
       <main id="appScreenContent" class="app-screen-body">
         <!-- Rendered by js/app.js -->

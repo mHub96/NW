@@ -1,8 +1,9 @@
 {
   "meta": {
     "appName": "NeuroWare",
-    "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:56:10.245Z",
+    "version": "2.2.0",
+    "lastUpdated": "2026-10-11T02:56:50.000Z",
+    "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
