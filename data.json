@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:32:48.265Z",
+    "lastUpdated": "2026-10-10T23:33:26.964Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -203,6 +203,27 @@
       ],
       "phone": "07801112222",
       "createdAt": "2026-10-10T22:31:45.994Z"
+    },
+    {
+      "id": "usr-mv315pgz",
+      "username": "falah",
+      "passwordPlain": "123",
+      "passwordHash": "h_be32",
+      "fullName": "Falah",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-10T23:33:26.963Z",
+          "lastActive": "2026-10-10T23:33:26.963Z"
+        }
+      ],
+      "phone": "98789998888",
+      "createdAt": "2026-10-10T23:33:26.963Z"
     }
   ],
   "items": [
@@ -735,6 +756,19 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv315pgz",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: Falah",
+      "message": "Staff Falah (@falah) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-10T23:33:26.963Z",
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv315pgz",
+        "username": "falah"
+      }
+    },
     {
       "id": "notif-mv307fr3-le37",
       "type": "low_stock",
