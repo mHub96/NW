@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:05:08.643Z",
+    "lastUpdated": "2026-10-10T23:06:48.063Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -260,7 +260,7 @@
             "Pressure Gauge Level": "Medium Pressure (50 - 90 mmH2O)",
             "Manufacturer": "Integra Codman (Medos/Hakim)"
           },
-          "quantity": 3,
+          "quantity": 2,
           "lowStockThreshold": 2,
           "sku": "VPS-BH-MED-COD",
           "lastRefilled": {
@@ -352,7 +352,7 @@
         }
       ],
       "createdAt": "2026-09-01T09:00:00.000Z",
-      "updatedAt": "2026-10-10T23:05:08.631Z"
+      "updatedAt": "2026-10-10T23:06:48.063Z"
     },
     {
       "id": "item-evd-02",
@@ -700,8 +700,55 @@
       "updatedAt": "2026-10-06T10:00:00.000Z"
     }
   ],
-  "usageLogs": [],
+  "usageLogs": [
+    {
+      "id": "log-mv307fr3",
+      "date": "2026-10-10",
+      "timestamp": "2026-10-10T23:06:48.063Z",
+      "patientName": "محمد قدوري جبار",
+      "patientAge": 42,
+      "patientGender": "Male",
+      "specialistCare": "د. احمد عبدالله",
+      "bedNumber": "ج ع ر",
+      "procedureName": "VP Shunt Placement (Medium Pressure)",
+      "loggedBy": {
+        "id": "usr-owner-01",
+        "username": "owner",
+        "fullName": "Dr. Haidar (Chief Neurosurgeon / Storage Director)",
+        "role": "OWNER"
+      },
+      "items": [
+        {
+          "itemId": "item-vpshunt-01",
+          "itemName": "VP Shunt System",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Type of Shunt": "Burr Hole Design",
+            "Pressure Gauge Level": "Medium Pressure (50 - 90 mmH2O)",
+            "Manufacturer": "Integra Codman (Medos/Hakim)"
+          },
+          "lotNumber": ""
+        }
+      ],
+      "notes": ""
+    }
+  ],
   "notifications": [
+    {
+      "id": "notif-mv307fr3-le37",
+      "type": "low_stock",
+      "priority": "warning",
+      "title": "Low Stock Alarm: VP Shunt System",
+      "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 2 Kits remaining in storage (Threshold: 2). Refill advised.",
+      "timestamp": "2026-10-10T23:06:48.063Z",
+      "readBy": [],
+      "metadata": {
+        "itemName": "VP Shunt System",
+        "spec": "Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)",
+        "currentQty": 2,
+        "threshold": 2
+      }
+    },
     {
       "id": "notif-mv305b13-6z59",
       "type": "refill",
