@@ -1,0 +1,841 @@
+{
+  "meta": {
+    "appName": "NeuroWare",
+    "version": "1.0.0",
+    "lastUpdated": "2026-10-11T00:30:00.000Z",
+    "hospital": "Neurosurgical Center & Operative Storage",
+    "githubSync": {
+      "user": "mHub96",
+      "repo": "NW",
+      "path": "data.json"
+    }
+  },
+  "specialists": [
+    { "id": "spec-1", "name": "د. احمد حقي", "title": "Consultant Neurosurgeon", "active": true },
+    { "id": "spec-2", "name": "د. احمد عبدالله", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-3", "name": "د. احمد كريم", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-4", "name": "د. اديان محمد", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-5", "name": "د. الاء اسماعيل", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-6", "name": "د. الاء حسن", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-7", "name": "د. انور ماجد", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-8", "name": "د. حيدر محمد", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-9", "name": "د. علي الموسوي", "title": "Specialist Neurosurgeon", "active": true },
+    { "id": "spec-10", "name": "د. عمر فاروق", "title": "Specialist Neurosurgeon", "active": true }
+  ],
+  "users": [
+    {
+      "id": "usr-owner-01",
+      "username": "owner",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Owner2026!",
+      "fullName": "Dr. Haidar (Chief Neurosurgeon / Storage Director)",
+      "role": "OWNER",
+      "status": "approved",
+      "deviceLimit": "unlimited",
+      "registeredDevices": [],
+      "phone": "+9647800000001",
+      "createdAt": "2026-09-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr-admin-01",
+      "username": "admin",
+      "passwordHash": "4c424fa7520e7f7b3a95be7a01d51a66ff5596e19198305b3ffca93d6a7aa8f2",
+      "passwordPlain": "Admin2026!",
+      "fullName": "Dr. Ahmed (Neurosurgery OR Manager)",
+      "role": "ADMIN",
+      "status": "approved",
+      "deviceLimit": "unlimited",
+      "registeredDevices": [],
+      "phone": "+9647804080071",
+      "createdAt": "2026-09-02T09:00:00.000Z"
+    },
+    {
+      "id": "usr-reg-01",
+      "username": "dr_kareem",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Kareem2026!",
+      "fullName": "د. احمد كريم (Neurosurgeon)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 1,
+      "registeredDevices": [],
+      "phone": "+9647739862206",
+      "createdAt": "2026-09-10T11:00:00.000Z"
+    },
+    {
+      "id": "usr-reg-02",
+      "username": "dr_anwar",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Anwar2026!",
+      "fullName": "د. انور ماجد (Neurosurgeon)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 2,
+      "registeredDevices": [],
+      "phone": "+9647758674695",
+      "createdAt": "2026-09-15T14:30:00.000Z"
+    },
+    {
+      "id": "usr-reg-03",
+      "username": "resident_ali",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Resident2026!",
+      "fullName": "Dr. Ali M. (Neurosurgery Resident)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 1,
+      "registeredDevices": [],
+      "phone": "+9647720000000",
+      "createdAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "usr-pending-01",
+      "username": "dr_sarah",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Sarah2026!",
+      "fullName": "Dr. Sarah Al-Bayati (Neurosurgery Specialist)",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [],
+      "phone": "+9647701112233",
+      "createdAt": "2026-10-10T19:40:00.000Z"
+    }
+  ],
+  "items": [
+    {
+      "id": "item-vpshunt-01",
+      "name": "VP Shunt System (Adult/Pediatric)",
+      "category": "CSF Diversion",
+      "quantity": 5,
+      "lowStockThreshold": 2,
+      "unit": "Kits",
+      "location": "Cabinet A - Shelf 2 (Sterile Shunt Locker)",
+      "sku": "VPS-COD-BB",
+      "notes": "Hydrocephalus shunt kit including ventricular catheter, valve, and peritoneal catheter.",
+      "attributes": [
+        {
+          "id": "attr-pressure",
+          "name": "Shunt Pressure Gauge Level",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Low Pressure (10 - 50 mmH2O)",
+            "Medium Pressure (50 - 90 mmH2O)",
+            "High Pressure (90 - 130 mmH2O)",
+            "Programmable / Adjustable Valve (Settings 1-5)",
+            "Ultra-Low Pressure (< 10 mmH2O)"
+          ]
+        },
+        {
+          "id": "attr-manufacturer",
+          "name": "Shunt Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Integra Codman (Medos/Hakim)",
+            "B. Braun (Miethke proGAV)",
+            "Medtronic (Strata NSC)",
+            "Sophysa (Polaris)"
+          ]
+        },
+        {
+          "id": "attr-type",
+          "name": "Type of Shunt Reservoir / Body",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Burr Hole Design",
+            "Flat Bottom Design",
+            "Unitized with Pre-chamber",
+            "Inline Cylindrical Body"
+          ]
+        },
+        {
+          "id": "attr-antisiphon",
+          "name": "Anti-Siphon Mechanism",
+          "type": "dropdown",
+          "required": false,
+          "options": [
+            "Integrated Gravitational Unit",
+            "Diaphragm Siphon Control",
+            "Standard (No Anti-Siphon)"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-05T12:00:00.000Z",
+        "by": "admin",
+        "amount": 3
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-05T12:00:00.000Z"
+    },
+    {
+      "id": "item-evd-02",
+      "name": "External Ventricular Drain (EVD) Catheter Kit",
+      "category": "CSF Diversion",
+      "quantity": 2,
+      "lowStockThreshold": 3,
+      "unit": "Kits",
+      "location": "Cabinet A - Drawer 1 (Emergency EVD)",
+      "sku": "EVD-SILV-10",
+      "notes": "Emergency ventricular drainage catheter with tunneling trocar and graduated centimeter markings.",
+      "attributes": [
+        {
+          "id": "attr-evd-type",
+          "name": "Catheter Coating & Material",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Silverline Antimicrobial Impregnated",
+            "Bactiseal (Rifampicin/Clindamycin Antibiotic)",
+            "Clear Barium Radiopaque Silicone"
+          ]
+        },
+        {
+          "id": "attr-evd-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Integra Codman EDS 3",
+            "Medtronic Neuromed",
+            "Spiegelberg Silverline"
+          ]
+        },
+        {
+          "id": "attr-evd-french",
+          "name": "Catheter Caliber (French Size)",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "8 French Standard",
+            "9 French Large Bore",
+            "6.4 French Pediatric"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-09-28T09:30:00.000Z",
+        "by": "admin",
+        "amount": 2
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-09-28T09:30:00.000Z"
+    },
+    {
+      "id": "item-surgicel-03",
+      "name": "Surgicel Absorbable Hemostat",
+      "category": "Hemostatic Agents",
+      "quantity": 1,
+      "lowStockThreshold": 3,
+      "unit": "Boxes",
+      "location": "Cabinet B - Shelf 2",
+      "sku": "SURG-FIB-19",
+      "notes": "Oxidized regenerated cellulose hemostatic agent. Crucial for intracranial bed hemostasis.",
+      "attributes": [
+        {
+          "id": "attr-surg-type",
+          "name": "Formulation Type",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Fibrillar (Layerable Cotton-like)",
+            "Original Standard Knit",
+            "Nu-Knit High-Density Heavy",
+            "Snow Multi-Layer Matrix"
+          ]
+        },
+        {
+          "id": "attr-surg-size",
+          "name": "Dimensions / Pack Size",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "1 in x 2 in (2.5 cm x 5.1 cm)",
+            "2 in x 4 in (5.1 cm x 10.2 cm)",
+            "4 in x 8 in (10.2 cm x 20.3 cm)"
+          ]
+        },
+        {
+          "id": "attr-surg-brand",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Ethicon (Johnson & Johnson)"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-09-20T14:10:00.000Z",
+        "by": "owner",
+        "amount": 4
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-09T17:00:00.000Z"
+    },
+    {
+      "id": "item-floseal-04",
+      "name": "FloSeal Hemostatic Matrix Kit",
+      "category": "Hemostatic Agents",
+      "quantity": 8,
+      "lowStockThreshold": 3,
+      "unit": "Syringe Kits",
+      "location": "Cabinet B - Shelf 1",
+      "sku": "FLOS-5ML-BAX",
+      "notes": "Bovine gelatin matrix with human thrombin. Essential for micro-neurosurgical vascular oozing.",
+      "attributes": [
+        {
+          "id": "attr-flo-vol",
+          "name": "Syringe Volume",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "5 mL Syringe System",
+            "10 mL High Capacity Syringe"
+          ]
+        },
+        {
+          "id": "attr-flo-tip",
+          "name": "Applicator Tip Configuration",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Flexible Malleable Tip 10 cm",
+            "Straight Rigid Tip 5 cm",
+            "Endoscopic Extended Cannula"
+          ]
+        },
+        {
+          "id": "attr-flo-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Baxter Healthcare"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-08T11:00:00.000Z",
+        "by": "admin",
+        "amount": 6
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-08T11:00:00.000Z"
+    },
+    {
+      "id": "item-duraseal-05",
+      "name": "DuraSeal Dural Sealant System",
+      "category": "Dural Repair",
+      "quantity": 4,
+      "lowStockThreshold": 2,
+      "unit": "Kits",
+      "location": "Biological Fridge 1 - Shelf B (2°C - 8°C)",
+      "sku": "DURAS-CRAN-5",
+      "notes": "Synthetic absorbable hydrogel dural sealant for watertight cranial dural closure.",
+      "attributes": [
+        {
+          "id": "attr-dura-type",
+          "name": "Application Kit Type",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Cranial Sealant 5 mL Kit",
+            "Spinal Sealant 3 mL Kit",
+            "Exact Micro-Applicator 5 mL"
+          ]
+        },
+        {
+          "id": "attr-dura-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Integra LifeSciences",
+            "Baxter (Tisseel Fibrin Alternative)"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-02T16:00:00.000Z",
+        "by": "admin",
+        "amount": 4
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-02T16:00:00.000Z"
+    },
+    {
+      "id": "item-titanium-06",
+      "name": "Titanium Cranial Mesh & Fixation Screws",
+      "category": "Cranial Reconstruction",
+      "quantity": 6,
+      "lowStockThreshold": 2,
+      "unit": "Sets",
+      "location": "Cabinet C - Drawer 2 (Cranial Plating)",
+      "sku": "TIT-MSH-15",
+      "notes": "Grade 5 Titanium dynamic cranial meshes, plates, and self-drilling emergency fixation screws.",
+      "attributes": [
+        {
+          "id": "attr-mesh-thickness",
+          "name": "Mesh Rigidity & Thickness",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "0.6 mm Ultra-Thin Flexible",
+            "0.8 mm Standard Rigid",
+            "1.0 mm Heavy Reconstruction"
+          ]
+        },
+        {
+          "id": "attr-plate-profile",
+          "name": "Pre-formed Plate / Burr Hole Cover",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Burr Hole Cover (18 mm Diameter)",
+            "4-Hole Straight Plate",
+            "2-Hole Dynamic Link",
+            "Y-Shape Orbitocranial Plate",
+            "Pre-contoured Temporal Plate"
+          ]
+        },
+        {
+          "id": "attr-screw-dim",
+          "name": "Screw Dimensions",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "1.5 x 4 mm Self-Drilling",
+            "1.5 x 5 mm Standard",
+            "1.7 x 4 mm Emergency Rescue"
+          ]
+        },
+        {
+          "id": "attr-mesh-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Stryker Leibinger Universal",
+            "DePuy Synthes Maxillofacial",
+            "KLS Martin"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-09-25T10:00:00.000Z",
+        "by": "owner",
+        "amount": 5
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-09-25T10:00:00.000Z"
+    },
+    {
+      "id": "item-aneurysm-07",
+      "name": "Sugita / Yasargil Aneurysm Clips",
+      "category": "Vascular Neurosurgery",
+      "quantity": 14,
+      "lowStockThreshold": 4,
+      "unit": "Sterile Clips",
+      "location": "Microvascular Vault Safe (Shelf A)",
+      "sku": "YAS-SUG-TIT",
+      "notes": "Phynox and titanium permanent / temporary micro-aneurysm clips with spring locking mechanism.",
+      "attributes": [
+        {
+          "id": "attr-blade-shape",
+          "name": "Blade Geometry & Curve",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Straight 7 mm",
+            "Curved 9 mm",
+            "Right Angle (90°) 6 mm",
+            "Bayonet Shaped 8 mm",
+            "Fenestrated Ring (5 mm opening / 10 mm blade)"
+          ]
+        },
+        {
+          "id": "attr-clip-type",
+          "name": "Application Mode",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Permanent Implantation (Silver/Titanium)",
+            "Temporary Occlusion (Gold Colored Spring)"
+          ]
+        },
+        {
+          "id": "attr-clip-brand",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Aesculap Yasargil (B. Braun)",
+            "Mizuho Sugita Titanium II"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-01T15:30:00.000Z",
+        "by": "admin",
+        "amount": 5
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-01T15:30:00.000Z"
+    },
+    {
+      "id": "item-pedicle-08",
+      "name": "Pedicle Screw Spinal Fixation Implants",
+      "category": "Spine Surgery",
+      "quantity": 18,
+      "lowStockThreshold": 5,
+      "unit": "Screws",
+      "location": "Spine Tower - Rack 1 (Drawer 3)",
+      "sku": "SPN-PED-MED",
+      "notes": "Titanium alloy polyaxial and monoaxial pedicle screws with locking set screws for spinal fusion.",
+      "attributes": [
+        {
+          "id": "attr-ped-dia",
+          "name": "Screw Diameter",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "5.5 mm (Thoracic/Lumbar)",
+            "6.5 mm (Lumbar Standard)",
+            "7.5 mm (L5/Sacral)",
+            "4.5 mm (Subaxial Cervical Lateral Mass)"
+          ]
+        },
+        {
+          "id": "attr-ped-len",
+          "name": "Screw Length",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "40 mm",
+            "45 mm",
+            "50 mm",
+            "55 mm",
+            "14 mm (Cervical Lateral Mass)"
+          ]
+        },
+        {
+          "id": "attr-ped-head",
+          "name": "Screw Head Mechanics",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Polyaxial Extended Friction Head",
+            "Monoaxial Rigid",
+            "Cannulated MIS (Minimally Invasive)",
+            "Fenestrated Cement-Augmented"
+          ]
+        },
+        {
+          "id": "attr-ped-brand",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Medtronic CD Horizon Solera",
+            "DePuy Synthes Viper Prime",
+            "Globus Medical REVERE"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-06T10:00:00.000Z",
+        "by": "admin",
+        "amount": 10
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-06T10:00:00.000Z"
+    },
+    {
+      "id": "item-drill-09",
+      "name": "High-Speed Craniotomy Drill Burr Bits",
+      "category": "Instrumentation",
+      "quantity": 7,
+      "lowStockThreshold": 3,
+      "unit": "Bits",
+      "location": "Tool Tray 4 - Sterile Instrument Bin",
+      "sku": "DRL-MIDAS-BURR",
+      "notes": "Sterile disposable high-speed motor burs for craniotomy, skull base drilling, and laminectomies.",
+      "attributes": [
+        {
+          "id": "attr-burr-head",
+          "name": "Head Profile & Cutting Geometry",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Diamond Ball 3.0 mm (Skull Base / Acoustic)",
+            "Diamond Ball 5.0 mm (Dural Margin Bone)",
+            "Fluted Matchstick 2.2 mm (Fine Dissection)",
+            "Acorn Perforator 11 mm (Cranial Trephination)",
+            "Coarse Diamond 4.0 mm"
+          ]
+        },
+        {
+          "id": "attr-burr-length",
+          "name": "Shaft Attachment Length",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Medium Straight (7 cm)",
+            "Long Straight (10 cm)",
+            "Angled Ergonomic (9 cm)"
+          ]
+        },
+        {
+          "id": "attr-burr-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Medtronic Midas Rex (Legend)",
+            "Stryker TPS / Core"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-10-04T13:45:00.000Z",
+        "by": "admin",
+        "amount": 5
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-10-04T13:45:00.000Z"
+    },
+    {
+      "id": "item-cement-10",
+      "name": "Palacos R+G Cranioplasty Bone Cement (PMMA)",
+      "category": "Cranial & Spine",
+      "quantity": 3,
+      "lowStockThreshold": 2,
+      "unit": "Packs",
+      "location": "Cabinet C - Shelf 4 (Chemical Locker)",
+      "sku": "PAL-RG-40G",
+      "notes": "Polymethylmethacrylate radiopaque bone cement with Gentamicin for cranial contour reconstruction.",
+      "attributes": [
+        {
+          "id": "attr-cement-antibiotic",
+          "name": "Antibiotic Additive",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "With Gentamicin (Palacos R+G)",
+            "Plain Non-Antibiotic (Palacos R)"
+          ]
+        },
+        {
+          "id": "attr-cement-visc",
+          "name": "Curing Viscosity",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "High Viscosity (Immediate Dough Stage)",
+            "Medium Viscosity",
+            "Low Viscosity (Vertebroplasty G-LV)"
+          ]
+        },
+        {
+          "id": "attr-cement-maker",
+          "name": "Manufacturer",
+          "type": "dropdown",
+          "required": true,
+          "options": [
+            "Heraeus Medical GmbH",
+            "Stryker Simplex P"
+          ]
+        }
+      ],
+      "lastRefilled": {
+        "date": "2026-09-30T11:20:00.000Z",
+        "by": "owner",
+        "amount": 3
+      },
+      "createdAt": "2026-09-01T09:00:00.000Z",
+      "updatedAt": "2026-09-30T11:20:00.000Z"
+    }
+  ],
+  "usageLogs": [
+    {
+      "id": "log-surg-001",
+      "date": "2026-10-10",
+      "timestamp": "2026-10-10T14:15:00.000Z",
+      "patientName": "Haider Qasim (حيدر قاسم)",
+      "patientAge": 54,
+      "patientGender": "Male",
+      "specialistCare": "د. احمد حقي",
+      "bedNumber": "Ward 3 - Bed 12",
+      "procedureName": "Right Frontal VP Shunt Insertion (Normal Pressure Hydrocephalus)",
+      "loggedBy": {
+        "username": "dr_kareem",
+        "fullName": "د. احمد كريم (Neurosurgeon)",
+        "role": "REGULAR"
+      },
+      "items": [
+        {
+          "itemId": "item-vpshunt-01",
+          "itemName": "VP Shunt System (Adult/Pediatric)",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Shunt Pressure Gauge Level": "Medium Pressure (50 - 90 mmH2O)",
+            "Shunt Manufacturer": "Integra Codman (Medos/Hakim)",
+            "Type of Shunt Reservoir / Body": "Burr Hole Design",
+            "Anti-Siphon Mechanism": "Integrated Gravitational Unit"
+          },
+          "lotNumber": "LOT-COD-2026-884"
+        },
+        {
+          "itemId": "item-surgicel-03",
+          "itemName": "Surgicel Absorbable Hemostat",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Formulation Type": "Fibrillar (Layerable Cotton-like)",
+            "Dimensions / Pack Size": "2 in x 4 in (5.1 cm x 10.2 cm)",
+            "Manufacturer": "Ethicon (Johnson & Johnson)"
+          },
+          "lotNumber": "LOT-SURG-771"
+        }
+      ],
+      "notes": "Smooth procedure under GA. Burr hole placed at Kocher's point. CSF opening pressure was 16 cmH2O. Good peritoneal distal flow confirmed."
+    },
+    {
+      "id": "log-surg-002",
+      "date": "2026-10-09",
+      "timestamp": "2026-10-09T18:40:00.000Z",
+      "patientName": "Zainab Ali (زينب علي)",
+      "patientAge": 38,
+      "patientGender": "Female",
+      "specialistCare": "د. انور ماجد",
+      "bedNumber": "ICU - Bed 04",
+      "procedureName": "Emergency Right Frontotemporal Craniotomy (Acute Subdural Hematoma Evacuation)",
+      "loggedBy": {
+        "username": "dr_anwar",
+        "fullName": "د. انور ماجد (Neurosurgeon)",
+        "role": "REGULAR"
+      },
+      "items": [
+        {
+          "itemId": "item-floseal-04",
+          "itemName": "FloSeal Hemostatic Matrix Kit",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Syringe Volume": "5 mL Syringe System",
+            "Applicator Tip Configuration": "Flexible Malleable Tip 10 cm",
+            "Manufacturer": "Baxter Healthcare"
+          },
+          "lotNumber": "LOT-FLO-449"
+        },
+        {
+          "itemId": "item-surgicel-03",
+          "itemName": "Surgicel Absorbable Hemostat",
+          "quantity": 2,
+          "selectedAttributes": {
+            "Formulation Type": "Nu-Knit High-Density Heavy",
+            "Dimensions / Pack Size": "4 in x 8 in (10.2 cm x 20.3 cm)",
+            "Manufacturer": "Ethicon (Johnson & Johnson)"
+          },
+          "lotNumber": "LOT-SURG-902"
+        },
+        {
+          "itemId": "item-evd-02",
+          "itemName": "External Ventricular Drain (EVD) Catheter Kit",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Catheter Coating & Material": "Silverline Antimicrobial Impregnated",
+            "Manufacturer": "Spiegelberg Silverline",
+            "Catheter Caliber (French Size)": "8 French Standard"
+          },
+          "lotNumber": "LOT-EVD-331"
+        }
+      ],
+      "notes": "Emergency trauma call. Large ASDH evacuated, cortical bleeding controlled with FloSeal and bipolar. EVD placed for ICP monitoring."
+    },
+    {
+      "id": "log-surg-003",
+      "date": "2026-10-08",
+      "timestamp": "2026-10-08T11:20:00.000Z",
+      "patientName": "Mohammed Hassan (محمد حسن)",
+      "patientAge": 62,
+      "patientGender": "Male",
+      "specialistCare": "د. احمد حقي",
+      "bedNumber": "Ward 2 - Bed 07",
+      "procedureName": "Pterional Craniotomy & MCA Aneurysm Clipping",
+      "loggedBy": {
+        "username": "admin",
+        "fullName": "Dr. Ahmed (Neurosurgery OR Manager)",
+        "role": "ADMIN"
+      },
+      "items": [
+        {
+          "itemId": "item-aneurysm-07",
+          "itemName": "Sugita / Yasargil Aneurysm Clips",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Blade Geometry & Curve": "Curved 9 mm",
+            "Application Mode": "Permanent Implantation (Silver/Titanium)",
+            "Manufacturer": "Aesculap Yasargil (B. Braun)"
+          },
+          "lotNumber": "LOT-CLIP-109"
+        },
+        {
+          "itemId": "item-duraseal-05",
+          "itemName": "DuraSeal Dural Sealant System",
+          "quantity": 1,
+          "selectedAttributes": {
+            "Application Kit Type": "Cranial Sealant 5 mL Kit",
+            "Manufacturer": "Integra LifeSciences"
+          },
+          "lotNumber": "LOT-DUR-872"
+        }
+      ],
+      "notes": "Complete obliteration of 7mm saccular MCA bifurcation aneurysm verified with ICG video-angiography. Watertight closure achieved."
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif-001",
+      "type": "low_stock",
+      "priority": "critical",
+      "title": "Critical Low Stock: Surgicel Absorbable Hemostat",
+      "message": "Only 1 Box left in storage (Alarm threshold: 2). Immediate restocking required for upcoming neurosurgery shifts.",
+      "timestamp": "2026-10-09T18:41:00.000Z",
+      "readBy": ["owner", "admin"],
+      "metadata": { "itemId": "item-surgicel-03", "currentQty": 1 }
+    },
+    {
+      "id": "notif-002",
+      "type": "low_stock",
+      "priority": "warning",
+      "title": "Low Stock Alert: EVD Catheter Kit",
+      "message": "External Ventricular Drain (EVD) Catheter Kit has reached 2 kits (Threshold: 3).",
+      "timestamp": "2026-10-09T18:41:00.000Z",
+      "readBy": ["owner"],
+      "metadata": { "itemId": "item-evd-02", "currentQty": 2 }
+    },
+    {
+      "id": "notif-003",
+      "type": "refill",
+      "priority": "normal",
+      "title": "Item Refilled: FloSeal Hemostatic Matrix Kit",
+      "message": "Admin Dr. Ahmed refilled FloSeal Hemostatic Matrix Kit by +6 Syringe Kits. Current stock is now 8 Kits.",
+      "timestamp": "2026-10-08T11:00:00.000Z",
+      "readBy": ["owner", "admin", "dr_kareem"],
+      "metadata": { "itemId": "item-floseal-04", "refilledBy": "Dr. Ahmed", "amount": 6, "total": 8 }
+    },
+    {
+      "id": "notif-004",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New User Sign-Up Pending Approval",
+      "message": "Dr. Sarah Al-Bayati (@dr_sarah) has submitted a sign-up request. Please approve or reject and configure device limits.",
+      "timestamp": "2026-10-10T19:40:00.000Z",
+      "readBy": [],
+      "metadata": { "userId": "usr-pending-01", "username": "dr_sarah" }
+    }
+  ]
+}

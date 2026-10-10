@@ -1,0 +1,18 @@
+{
+  "name": "NeuroWare Neurosurgical Storage",
+  "short_name": "NeuroWare",
+  "description": "Neurosurgical OR Storage Inventory & Operative Log System",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
