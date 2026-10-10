@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-10T22:29:17.297Z",
+    "lastUpdated": "2026-10-10T22:31:45.995Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -166,6 +166,27 @@
       "registeredDevices": [],
       "phone": "+9647701112233",
       "createdAt": "2026-10-10T19:40:00.000Z"
+    },
+    {
+      "id": "usr-mv2yydsa",
+      "username": "rafid",
+      "passwordPlain": "rqfid1234",
+      "passwordHash": "h_52a1175c",
+      "fullName": "Dr. Rafid Khalid",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-w9d20x9-mv2ywklv",
+          "name": "Linux Workstation",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-10T22:31:45.994Z",
+          "lastActive": "2026-10-10T22:31:45.994Z"
+        }
+      ],
+      "phone": "07801112222",
+      "createdAt": "2026-10-10T22:31:45.994Z"
     }
   ],
   "items": [
@@ -863,6 +884,20 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv2yydsa",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: Dr. Rafid Khalid",
+      "message": "Dr./Staff Dr. Rafid Khalid (@rafid) requested registration. Needs Owner/Admin approval and device limit review.",
+      "timestamp": "2026-10-10T22:31:45.994Z",
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv2yydsa",
+        "username": "rafid",
+        "requestedRole": "REGULAR"
+      }
+    },
     {
       "id": "notif-001",
       "type": "low_stock",
