@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:32:12.660Z",
+    "lastUpdated": "2026-10-10T23:32:35.556Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -741,7 +741,9 @@
       "title": "Low Stock Alarm: VP Shunt System",
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 2 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:06:48.063Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "itemName": "VP Shunt System",
         "spec": "Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)",
