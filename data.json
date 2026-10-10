@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:32:35.556Z",
+    "lastUpdated": "2026-10-10T23:32:39.843Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -775,7 +775,9 @@
       "title": "Welcome to NeuroWare v1.1",
       "message": "Operative storage active with separate spec-level stock tracking and hardware device security.",
       "timestamp": "2026-10-11T01:50:00.000Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {}
     }
   ]
