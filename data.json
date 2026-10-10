@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.0.0",
-    "lastUpdated": "2026-10-10T22:33:47.531Z",
+    "lastUpdated": "2026-10-10T22:37:39.307Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -95,7 +95,7 @@
           "name": "Linux Workstation",
           "platform": "Linux armv81",
           "registeredAt": "2026-10-10T22:32:27.765Z",
-          "lastActive": "2026-10-10T22:32:27.765Z"
+          "lastActive": "2026-10-10T22:37:39.306Z"
         }
       ],
       "phone": "+9647800000001",
