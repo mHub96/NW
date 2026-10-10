@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:33:51.877Z",
+    "lastUpdated": "2026-10-10T23:34:12.160Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -211,7 +211,7 @@
       "passwordHash": "h_be32",
       "fullName": "Falah",
       "role": "REGULAR",
-      "status": "pending",
+      "status": "rejected",
       "deviceLimit": 1,
       "registeredDevices": [
         {
@@ -223,7 +223,8 @@
         }
       ],
       "phone": "98789998888",
-      "createdAt": "2026-10-10T23:33:26.963Z"
+      "createdAt": "2026-10-10T23:33:26.963Z",
+      "rejectReason": "Rejected by administration"
     }
   ],
   "items": [
