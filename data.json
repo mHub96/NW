@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "1.1.0",
-    "lastUpdated": "2026-10-10T23:33:26.964Z",
+    "lastUpdated": "2026-10-10T23:33:51.877Z",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
       "user": "mHub96",
@@ -763,7 +763,9 @@
       "title": "New Sign-up Request: Falah",
       "message": "Staff Falah (@falah) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:33:26.963Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "userId": "usr-mv315pgz",
         "username": "falah"
