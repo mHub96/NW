@@ -1,7 +1,7 @@
 /**
  * NeuroWare Surgical Inventory & Operative Log Engine
  * Multi-Variant / Specification-Level Stock Tracking
- * Dynamic Item Schema, Combination-Based Storage Values, Refills & Alarms
+ * Smart Patient Profiles, Unique Medical IDs, Chronological Age Validation & Combination Refills
  */
 
 class InventoryManager {
@@ -25,6 +25,39 @@ class InventoryManager {
     if (!item || !item.variants || !Array.isArray(item.variants)) return null;
     const targetKey = InventoryManager.getVariantKey(attrMap);
     return item.variants.find(v => InventoryManager.getVariantKey(v.attributes) === targetKey) || null;
+  }
+
+  // Get stock details for a specific feature combination
+  getVariantStock(itemId, attrMap) {
+    const item = this.getItemById(itemId);
+    if (!item) return { exists: false, quantity: 0, threshold: 2, unit: "Units" };
+
+    if (!item.attributes || item.attributes.length === 0) {
+      return {
+        exists: true,
+        quantity: item.quantity,
+        threshold: item.threshold,
+        unit: item.unit
+      };
+    }
+
+    const variant = this.findVariant(item, attrMap);
+    if (!variant) {
+      return {
+        exists: false,
+        quantity: 0,
+        threshold: item.threshold,
+        unit: item.unit
+      };
+    }
+
+    return {
+      exists: true,
+      quantity: parseInt(variant.quantity, 10) || 0,
+      threshold: variant.lowStockThreshold || item.threshold,
+      unit: item.unit,
+      sku: variant.sku || ""
+    };
   }
 
   // Compute total item quantity across all distinct feature combinations
@@ -68,7 +101,6 @@ class InventoryManager {
       const threshold = item.lowStockThreshold !== undefined ? item.lowStockThreshold : window.NEURO_CONFIG.CONFIG.defaultAlarmThreshold;
       const totalQty = this.computeItemTotalQuantity(item);
 
-      // Check if any specific variant has low stock or out of stock
       const variantsWithStatus = (item.variants || []).map(v => {
         const vThreshold = v.lowStockThreshold !== undefined ? v.lowStockThreshold : threshold;
         const vOut = v.quantity <= 0;
@@ -104,6 +136,202 @@ class InventoryManager {
   getItemById(id) {
     const items = this.getItems();
     return items.find(it => it.id === id) || null;
+  }
+
+  // --- Patient Profile & ID Management Engine ---
+  generateUniquePatientId() {
+    const db = this.getDb();
+    const existingIds = new Set();
+    (db.patients || []).forEach(p => existingIds.add(p.id));
+    (db.usageLogs || []).forEach(l => { if (l.patientId) existingIds.add(l.patientId); });
+
+    let newId;
+    let attempts = 0;
+    do {
+      const randomNum = Math.floor(100000 + Math.random() * 900000); // 6-digit clinical ID
+      newId = `PID-${randomNum}`;
+      attempts++;
+    } while (existingIds.has(newId) && attempts < 1000);
+
+    return newId;
+  }
+
+  // Find matching patient by name (case-insensitive & trimmed)
+  findPatientByName(name) {
+    if (!name || !name.trim()) return null;
+    const clean = name.trim().toLowerCase();
+    const db = this.getDb();
+
+    // Check patients array first
+    if (db.patients && Array.isArray(db.patients)) {
+      const p = db.patients.find(x => x.name.trim().toLowerCase() === clean);
+      if (p) return this.enrichPatient(p);
+    }
+
+    // Fallback: check historical usage logs
+    if (db.usageLogs && Array.isArray(db.usageLogs)) {
+      const log = db.usageLogs.find(l => l.patientName && l.patientName.trim().toLowerCase() === clean);
+      if (log) {
+        const generated = {
+          id: log.patientId || this.generateUniquePatientId(),
+          name: log.patientName.trim(),
+          gender: log.patientGender || "Male"
+        };
+        return this.enrichPatient(generated);
+      }
+    }
+
+    return null;
+  }
+
+  getPatientById(patientId) {
+    if (!patientId) return null;
+    const db = this.getDb();
+    let found = (db.patients || []).find(p => p.id === patientId);
+    if (!found) {
+      const log = (db.usageLogs || []).find(l => l.patientId === patientId);
+      if (log) {
+        found = {
+          id: patientId,
+          name: log.patientName,
+          gender: log.patientGender
+        };
+      }
+    }
+    return found ? this.enrichPatient(found) : null;
+  }
+
+  // Enriches patient record with operations history and latest metrics
+  enrichPatient(patient) {
+    const db = this.getDb();
+    const logs = (db.usageLogs || [])
+      .filter(l => (l.patientId && l.patientId === patient.id) || (!l.patientId && l.patientName && l.patientName.trim().toLowerCase() === patient.name.trim().toLowerCase()))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const latestLog = logs.length > 0 ? logs[logs.length - 1] : null;
+
+    return {
+      ...patient,
+      operations: logs,
+      operationsCount: logs.length,
+      lastAge: latestLog ? latestLog.patientAge : null,
+      lastSpecialist: latestLog ? latestLog.specialistCare : null,
+      lastBed: latestLog ? latestLog.bedNumber : null,
+      lastProcedure: latestLog ? latestLog.procedureName : null,
+      lastDate: latestLog ? latestLog.date : null
+    };
+  }
+
+  // Get all registered patients for the Patient Profiles Explorer
+  getAllPatients(searchQuery = "") {
+    const db = this.getDb();
+    const patientMap = new Map();
+
+    // From patients table
+    (db.patients || []).forEach(p => {
+      patientMap.set(p.id, this.enrichPatient(p));
+    });
+
+    // From usage logs (for any logs that created a patient)
+    (db.usageLogs || []).forEach(l => {
+      const pId = l.patientId || `pat-${l.patientName.trim().toLowerCase()}`;
+      if (!patientMap.has(pId)) {
+        patientMap.set(pId, this.enrichPatient({
+          id: l.patientId || this.generateUniquePatientId(),
+          name: l.patientName,
+          gender: l.patientGender
+        }));
+      }
+    });
+
+    let list = Array.from(patientMap.values());
+
+    if (searchQuery && searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(p => 
+        p.name.toLowerCase().includes(q) ||
+        (p.id && p.id.toLowerCase().includes(q)) ||
+        (p.lastSpecialist && p.lastSpecialist.toLowerCase().includes(q)) ||
+        (p.lastProcedure && p.lastProcedure.toLowerCase().includes(q))
+      );
+    }
+
+    // Sort by most recently operated first
+    return list.sort((a, b) => {
+      const dateA = a.lastDate ? new Date(a.lastDate).getTime() : 0;
+      const dateB = b.lastDate ? new Date(b.lastDate).getTime() : 0;
+      return dateB - dateA;
+    });
+  }
+
+  // Chronological Age Validation Engine
+  // Checks age constraints against all historical operations for the patient
+  getAgeBoundsForDate(patientId, targetDateStr) {
+    const patient = this.getPatientById(patientId);
+    if (!patient || !patient.operations || patient.operations.length === 0) {
+      return { minAge: 0, maxAge: 150, minReferenceOp: null, maxReferenceOp: null, hasRestrictions: false };
+    }
+
+    const targetDate = new Date(targetDateStr).getTime();
+    let minAge = 0;
+    let maxAge = 150;
+    let minReferenceOp = null;
+    let maxReferenceOp = null;
+
+    // Filter operations that have valid recorded ages
+    const validOps = patient.operations
+      .filter(op => op.patientAge !== null && !isNaN(parseInt(op.patientAge, 10)))
+      .map(op => ({
+        ...op,
+        age: parseInt(op.patientAge, 10),
+        time: new Date(op.date).getTime()
+      }))
+      .sort((a, b) => a.time - b.time);
+
+    // 1. Minimum allowed age: Look at all operations before or on targetDate
+    // The patient cannot be younger than at any previous operation!
+    const priorOps = validOps.filter(op => op.time <= targetDate);
+    if (priorOps.length > 0) {
+      minAge = Math.max(...priorOps.map(o => o.age));
+      minReferenceOp = priorOps.slice().reverse().find(o => o.age === minAge) || priorOps[priorOps.length - 1];
+    }
+
+    // 2. Maximum allowed age: Look at all operations after or on targetDate
+    // The patient cannot be older than at any subsequent operation!
+    const subsequentOps = validOps.filter(op => op.time >= targetDate);
+    if (subsequentOps.length > 0) {
+      maxAge = Math.min(...subsequentOps.map(o => o.age));
+      maxReferenceOp = subsequentOps.find(o => o.age === maxAge) || subsequentOps[0];
+    }
+
+    return {
+      minAge,
+      maxAge,
+      minReferenceOp,
+      maxReferenceOp,
+      hasRestrictions: minReferenceOp !== null || maxReferenceOp !== null
+    };
+  }
+
+  // Validate patient age for a target operation date
+  validatePatientAge(patientId, targetDateStr, inputAge) {
+    if (!patientId || inputAge === null || inputAge === undefined || isNaN(inputAge)) return true;
+    const age = parseInt(inputAge, 10);
+    const bounds = this.getAgeBoundsForDate(patientId, targetDateStr);
+
+    if (bounds.minReferenceOp && age < bounds.minAge) {
+      throw new Error(
+        `Chronological Age Violation: Patient was recorded as age ${bounds.minAge} on prior surgery (${bounds.minReferenceOp.date}). For operation on ${targetDateStr}, age cannot be less than ${bounds.minAge}.`
+      );
+    }
+
+    if (bounds.maxReferenceOp && age > bounds.maxAge) {
+      throw new Error(
+        `Chronological Age Violation: Patient was recorded as age ${bounds.maxAge} on a later surgery (${bounds.maxReferenceOp.date}). For operation on ${targetDateStr}, age cannot be greater than ${bounds.maxAge}.`
+      );
+    }
+
+    return true;
   }
 
   // --- Admin/Owner: Add new item to storage ---
@@ -183,10 +411,8 @@ class InventoryManager {
     let variantTotal = 0;
 
     if (selectedAttributes && Object.keys(selectedAttributes).length > 0) {
-      // Find matching variant
       let variant = this.findVariant(item, selectedAttributes);
       if (!variant) {
-        // Create new combination variant in storage
         variant = {
           id: "var-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6),
           attributes: { ...selectedAttributes },
@@ -215,7 +441,6 @@ class InventoryManager {
 
       specDescription = Object.entries(selectedAttributes).map(([k, v]) => `${k}: ${v}`).join(", ");
     } else {
-      // Item has no variants, refill simple item quantity
       item.quantity = (parseInt(item.quantity, 10) || 0) + added;
       variantTotal = item.quantity;
       item.lastRefilled = {
@@ -233,7 +458,7 @@ class InventoryManager {
       type: "refill",
       priority: "normal",
       title: `Stock Refilled: ${item.name}`,
-      message: `${this.auth.getCurrentUser().fullName} refilled ${item.name}${specText} by +${added} ${item.unit}. Available for this specification: ${variantTotal} ${item.unit}.${note ? ` (Note: ${note})` : ''}`,
+      message: `${this.auth.getCurrentUser().fullName} refilled ${item.name}${specText} by +${added} ${item.unit}. Available in storage for this specification: ${variantTotal} ${item.unit}.${note ? ` (Note: ${note})` : ''}`,
       metadata: {
         itemId: item.id,
         itemName: item.name,
@@ -335,7 +560,7 @@ class InventoryManager {
     return true;
   }
 
-  // --- Surgical Usage Submission (Combines Feature Deductions Atomically) ---
+  // --- Surgical Consumption Submission with Smart Patient Linking & Chronological Age Check ---
   async submitSurgicalConsumption(report) {
     const user = this.auth.getCurrentUser();
     if (!user) throw new Error("Authentication required.");
@@ -351,6 +576,25 @@ class InventoryManager {
 
     if (!report.specialistCare) {
       throw new Error("Attending specialist care selection is required.");
+    }
+
+    const opDate = report.operationDate || new Date().toISOString().split("T")[0];
+
+    // Determine or generate unique Patient ID
+    let patientId = report.patientId;
+    if (!patientId) {
+      // Check if existing patient matches name
+      const existing = this.findPatientByName(report.patientName);
+      if (existing) {
+        patientId = existing.id;
+      } else {
+        patientId = this.generateUniquePatientId();
+      }
+    }
+
+    // Chronological Age Validation against historical surgeries
+    if (report.patientAge) {
+      this.validatePatientAge(patientId, opDate, report.patientAge);
     }
 
     // Pre-validate stock for every specific item and its exact feature combination
@@ -422,12 +666,29 @@ class InventoryManager {
       consumedSummary.push(`${trayItem.quantity}x ${dbItem.name}${specText ? ` (${specText})` : ''}`);
     }
 
+    // Update / Register Patient Profile in db.patients
+    if (!db.patients) db.patients = [];
+    let patientRecord = db.patients.find(p => p.id === patientId);
+    if (!patientRecord) {
+      patientRecord = {
+        id: patientId,
+        name: report.patientName.trim(),
+        gender: report.patientGender || "Male",
+        createdAt: new Date().toISOString()
+      };
+      db.patients.push(patientRecord);
+    } else {
+      patientRecord.name = report.patientName.trim();
+      patientRecord.gender = report.patientGender || patientRecord.gender;
+      patientRecord.updatedAt = new Date().toISOString();
+    }
+
     // Record immutable surgical log
     if (!db.usageLogs) db.usageLogs = [];
 
-    const opDate = report.operationDate || new Date().toISOString().split("T")[0];
     const logEntry = {
       id: "log-" + Date.now().toString(36),
+      patientId: patientId,
       date: opDate,
       timestamp: new Date().toISOString(),
       patientName: report.patientName.trim(),
@@ -476,7 +737,7 @@ class InventoryManager {
       }
     }
 
-    await this.saveDb(db, `Surgical consumption: ${report.patientName} (${consumedSummary.join(", ")})`);
+    await this.saveDb(db, `Surgical consumption: ${report.patientName} (${patientId})`);
     return logEntry;
   }
 
@@ -503,6 +764,9 @@ class InventoryManager {
 
     let logs = [...db.usageLogs];
 
+    if (filters.patientId) {
+      logs = logs.filter(log => log.patientId === filters.patientId);
+    }
     if (filters.date) {
       logs = logs.filter(log => log.date === filters.date);
     }
@@ -515,7 +779,8 @@ class InventoryManager {
     if (filters.search && filters.search.trim()) {
       const q = filters.search.toLowerCase().trim();
       logs = logs.filter(log => 
-        log.patientName.toLowerCase().includes(q) ||
+        (log.patientName && log.patientName.toLowerCase().includes(q)) ||
+        (log.patientId && log.patientId.toLowerCase().includes(q)) ||
         (log.procedureName && log.procedureName.toLowerCase().includes(q)) ||
         (log.specialistCare && log.specialistCare.toLowerCase().includes(q)) ||
         (log.loggedBy && log.loggedBy.fullName.toLowerCase().includes(q)) ||

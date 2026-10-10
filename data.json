@@ -723,9 +723,18 @@
       "updatedAt": "2026-10-06T10:00:00.000Z"
     }
   ],
+  "patients": [
+    {
+      "id": "PID-582910",
+      "name": "محمد قدوري جبار",
+      "gender": "Male",
+      "createdAt": "2026-10-10T23:06:48.063Z"
+    }
+  ],
   "usageLogs": [
     {
       "id": "log-mv307fr3",
+      "patientId": "PID-582910",
       "date": "2026-10-10",
       "timestamp": "2026-10-10T23:06:48.063Z",
       "patientName": "محمد قدوري جبار",

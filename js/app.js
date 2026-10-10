@@ -227,15 +227,23 @@ document.addEventListener("DOMContentLoaded", async () => {
           <span style="font-size:11.5px;color:var(--ios-blue);font-weight:600;">Shift Log</span>
         </div>
 
-        <div class="ios-input-group">
+        <div class="ios-input-group" style="position:relative;">
           <label class="ios-label">Patient Full Name *</label>
-          <input type="text" id="surgPatientName" class="ios-input" placeholder="e.g. Haider Qasim (حيدر قاسم)" required>
+          <div style="position:relative;display:flex;align-items:center;">
+            <input type="hidden" id="surgPatientId" value="">
+            <input type="text" id="surgPatientName" class="ios-input" placeholder="e.g. Haider Qasim (حيدر قاسم)" required style="padding-right:110px;">
+            <button type="button" id="btnPatientLockInfo" class="patient-lock-badge-btn" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:3;" title="Patient profile linked and locked. Tap for details.">
+              🔒 <span id="lockedPidLabel">PID-000000</span>
+            </button>
+          </div>
+          <div id="patientLockedBanner" style="display:none;font-size:11.5px;color:var(--ios-blue);margin-top:4px;font-weight:600;"></div>
         </div>
 
         <div style="display:flex;gap:10px;">
           <div class="ios-input-group" style="flex:1;">
             <label class="ios-label">Age</label>
             <input type="number" id="surgPatientAge" class="ios-input" placeholder="e.g. 52">
+            <div id="surgAgeConstraintNotice" style="font-size:11px;color:var(--ios-text-secondary);margin-top:4px;line-height:1.3;"></div>
           </div>
           <div class="ios-input-group" style="flex:1;">
             <label class="ios-label">Gender</label>
@@ -350,6 +358,262 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       </div>
     `;
+
+    // Patient Profile Linking, Lock & Chronological Age Management
+    const nameInput = document.getElementById("surgPatientName");
+    const pidInput = document.getElementById("surgPatientId");
+    const ageInput = document.getElementById("surgPatientAge");
+    const genderSelect = document.getElementById("surgPatientGender");
+    const dateInput = document.getElementById("surgOpDate");
+    const lockBtn = document.getElementById("btnPatientLockInfo");
+    const lockedBanner = document.getElementById("patientLockedBanner");
+    const ageNotice = document.getElementById("surgAgeConstraintNotice");
+
+    const declinedNames = new Set();
+    let nameDebounceTimer = null;
+
+    function linkAndLockPatient(patient) {
+      if (!patient) return;
+      pidInput.value = patient.id;
+      nameInput.value = patient.name;
+      nameInput.readOnly = true;
+      genderSelect.value = patient.gender || "Male";
+      genderSelect.disabled = true;
+
+      const specSelect = document.getElementById("surgSpecialist");
+      if (specSelect && !specSelect.value && patient.lastSpecialist) {
+        specSelect.value = patient.lastSpecialist;
+      }
+
+      const bedInput = document.getElementById("surgBedNumber");
+      if (bedInput && !bedInput.value && patient.lastBed) {
+        bedInput.value = patient.lastBed;
+      }
+
+      if (!ageInput.value && patient.lastAge) {
+        ageInput.value = patient.lastAge;
+      }
+
+      lockBtn.style.display = "inline-flex";
+      document.getElementById("lockedPidLabel").textContent = patient.id;
+
+      lockedBanner.style.display = "block";
+      lockedBanner.innerHTML = `🔒 Linked to Clinical Record: <strong>${patient.id}</strong> (${patient.operationsCount || 0} historical surgeries)`;
+
+      updateAgeConstraints();
+    }
+
+    // Expose globally so external calls (like from the Patient Explorer) can pre-link a patient
+    window.linkAndLockPatient = linkAndLockPatient;
+
+    function unlockAndClearPatient() {
+      pidInput.value = "";
+      nameInput.value = "";
+      nameInput.readOnly = false;
+      genderSelect.disabled = false;
+      ageInput.value = "";
+      ageInput.removeAttribute("min");
+      ageInput.removeAttribute("max");
+      ageInput.style.borderColor = "";
+      ageNotice.innerHTML = "";
+      lockBtn.style.display = "none";
+      lockedBanner.style.display = "none";
+      nameInput.focus();
+    }
+
+    function updateAgeConstraints() {
+      const patientId = pidInput.value;
+      const opDate = dateInput.value || new Date().toISOString().split("T")[0];
+
+      if (!patientId) {
+        ageInput.removeAttribute("min");
+        ageInput.removeAttribute("max");
+        ageInput.style.borderColor = "";
+        ageNotice.innerHTML = "";
+        return;
+      }
+
+      const bounds = inventory.getAgeBoundsForDate(patientId, opDate);
+      if (!bounds.hasRestrictions) {
+        ageInput.removeAttribute("min");
+        ageInput.removeAttribute("max");
+        ageInput.style.borderColor = "";
+        ageNotice.innerHTML = `<span style="color:var(--ios-green);">✓ First surgery for this profile. Any valid clinical age accepted.</span>`;
+        return;
+      }
+
+      let noticeText = "";
+      if (bounds.minReferenceOp && bounds.maxReferenceOp) {
+        ageInput.min = bounds.minAge;
+        ageInput.max = bounds.maxAge;
+        noticeText = `🔒 Age constraint: Must be between <strong>${bounds.minAge}</strong> and <strong>${bounds.maxAge}</strong> (Op on ${bounds.minReferenceOp.date}: ${bounds.minAge}y; Op on ${bounds.maxReferenceOp.date}: ${bounds.maxAge}y).`;
+      } else if (bounds.minReferenceOp) {
+        ageInput.min = bounds.minAge;
+        ageInput.removeAttribute("max");
+        noticeText = `🔒 Age constraint: Must be at least <strong>${bounds.minAge}</strong> (Recorded on ${bounds.minReferenceOp.date} as ${bounds.minAge}y).`;
+      } else if (bounds.maxReferenceOp) {
+        ageInput.removeAttribute("min");
+        ageInput.max = bounds.maxAge;
+        noticeText = `🔒 Age constraint: Cannot exceed <strong>${bounds.maxAge}</strong> (Recorded on ${bounds.maxReferenceOp.date} as ${bounds.maxAge}y).`;
+      }
+
+      const currentAge = parseInt(ageInput.value, 10);
+      if (!isNaN(currentAge)) {
+        if ((bounds.minReferenceOp && currentAge < bounds.minAge) || (bounds.maxReferenceOp && currentAge > bounds.maxAge)) {
+          ageInput.style.borderColor = "var(--ios-red)";
+          ageNotice.innerHTML = `<span style="color:var(--ios-red);font-weight:700;">⚠️ ${noticeText} Current entry (${currentAge}y) violates historical chronology!</span>`;
+        } else {
+          ageInput.style.borderColor = "var(--ios-green)";
+          ageNotice.innerHTML = `<span style="color:var(--ios-text-secondary);">${noticeText}</span>`;
+        }
+      } else {
+        ageInput.style.borderColor = "";
+        ageNotice.innerHTML = `<span style="color:var(--ios-text-secondary);">${noticeText}</span>`;
+      }
+    }
+
+    function checkPatientDuplicate(name) {
+      if (!name || !name.trim()) return;
+      if (pidInput.value) return; // Already locked
+      const clean = name.trim().toLowerCase();
+      if (declinedNames.has(clean)) return;
+
+      const match = inventory.findPatientByName(name);
+      if (match) {
+        showPatientMatchDialog(match);
+      }
+    }
+
+    function showPatientMatchDialog(matchedPatient) {
+      const existing = document.getElementById("patientMatchDialogOverlay");
+      if (existing) existing.remove();
+
+      const overlay = document.createElement("div");
+      overlay.id = "patientMatchDialogOverlay";
+      overlay.style.cssText = `
+        position:fixed;top:0;left:0;right:0;bottom:0;
+        background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);
+        z-index:2500;display:flex;align-items:center;justify-content:center;padding:20px;
+      `;
+
+      const opCount = matchedPatient.operationsCount || 0;
+      const lastOpTxt = matchedPatient.lastDate ? `Last surgery on ${matchedPatient.lastDate}` : `Clinical file active`;
+
+      overlay.innerHTML = `
+        <div style="background:var(--ios-card);border-radius:18px;max-width:340px;width:100%;padding:22px 20px;text-align:center;box-shadow:0 20px 45px rgba(0,0,0,0.35);border:1px solid var(--ios-separator);">
+          <div style="font-size:38px;margin-bottom:8px;">👤 🔍</div>
+          <h3 style="margin:0 0 8px 0;font-size:17px;font-weight:700;color:var(--ios-text-primary);">
+            Existing Patient Record Found
+          </h3>
+          <p style="margin:0 0 12px 0;font-size:13px;color:var(--ios-text-secondary);line-height:1.45;">
+            A patient named <strong>"${matchedPatient.name}"</strong> already exists in the system with ID <strong style="font-family:var(--font-mono);color:var(--ios-blue);">${matchedPatient.id}</strong>.
+          </p>
+
+          <div style="background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:10px;padding:8px 12px;margin-bottom:16px;text-align:left;font-size:12px;color:var(--ios-text-secondary);">
+            <div>• <strong>Gender:</strong> ${matchedPatient.gender || 'Not specified'}</div>
+            <div>• <strong>Historical Operations:</strong> ${opCount} procedure${opCount === 1 ? '' : 's'}</div>
+            <div>• <strong>Status:</strong> ${lastOpTxt}</div>
+            ${matchedPatient.lastAge ? `<div>• <strong>Last Recorded Age:</strong> ${matchedPatient.lastAge} years old</div>` : ''}
+          </div>
+
+          <p style="margin:0 0 16px 0;font-size:13.5px;font-weight:600;color:var(--ios-text-primary);">
+            Is this the <strong>same patient</strong>?
+          </p>
+
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button type="button" id="btnMatchYes" class="ios-btn ios-btn-primary" style="font-weight:700;">
+              Yes, Same Patient (Fetch & Lock Profile)
+            </button>
+            <button type="button" id="btnMatchNo" class="ios-btn ios-btn-secondary" style="font-size:13px;">
+              No, Different Patient (Create New ID)
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(overlay);
+
+      document.getElementById("btnMatchYes").addEventListener("click", () => {
+        overlay.remove();
+        linkAndLockPatient(matchedPatient);
+      });
+
+      document.getElementById("btnMatchNo").addEventListener("click", () => {
+        overlay.remove();
+        declinedNames.add(matchedPatient.name.trim().toLowerCase());
+        pidInput.value = "";
+        nameInput.readOnly = false;
+        genderSelect.disabled = false;
+        lockBtn.style.display = "none";
+        lockedBanner.style.display = "none";
+        updateAgeConstraints();
+      });
+    }
+
+    nameInput.addEventListener("input", () => {
+      clearTimeout(nameDebounceTimer);
+      if (!nameInput.value.trim()) {
+        declinedNames.clear();
+      }
+      if (nameInput.value.trim().length >= 3 && !pidInput.value) {
+        nameDebounceTimer = setTimeout(() => {
+          checkPatientDuplicate(nameInput.value);
+        }, 650);
+      }
+    });
+
+    nameInput.addEventListener("blur", () => {
+      clearTimeout(nameDebounceTimer);
+      if (nameInput.value.trim() && !pidInput.value) {
+        checkPatientDuplicate(nameInput.value);
+      }
+    });
+
+    dateInput.addEventListener("change", updateAgeConstraints);
+    ageInput.addEventListener("input", updateAgeConstraints);
+
+    lockBtn.addEventListener("click", () => {
+      const patientId = pidInput.value;
+      const patient = inventory.getPatientById(patientId);
+      const title = document.getElementById("sheetModalTitle");
+      const body = document.getElementById("sheetModalBody");
+      title.textContent = `Patient Locked: ${patient?.id || patientId}`;
+      body.innerHTML = `
+        <div style="padding:10px 0 16px 0;">
+          <div style="text-align:center;font-size:36px;margin-bottom:8px;">🔒</div>
+          <h3 style="margin:0 0 6px 0;font-size:17px;font-weight:700;text-align:center;color:var(--ios-text-primary);">
+            ${patient?.name || 'Patient Profile'} (${patient?.id || patientId})
+          </h3>
+          <p style="font-size:13px;color:var(--ios-text-secondary);line-height:1.45;margin:0 0 14px 0;text-align:center;">
+            Patient demographics (Name & Gender) are locked because this surgery is linked to an existing clinical medical record. This preserves identity consistency across surgical shifts.
+          </p>
+
+          <div style="background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:10px;padding:12px;margin-bottom:16px;font-size:12.5px;color:var(--ios-text-secondary);">
+            <div>• <strong>Unique Patient ID:</strong> <span style="font-family:var(--font-mono);font-weight:700;color:var(--ios-blue);">${patient?.id}</span></div>
+            <div>• <strong>Gender:</strong> ${patient?.gender || 'Male'} (Locked)</div>
+            <div>• <strong>Historical Operations:</strong> ${patient?.operationsCount || 0} surgeries recorded</div>
+            ${patient?.lastDate ? `<div>• <strong>Most Recent Surgery:</strong> ${patient.lastDate} (${patient.lastProcedure || 'Neurosurgery'})</div>` : ''}
+            ${patient?.lastAge ? `<div>• <strong>Recorded Age on Last Op:</strong> ${patient.lastAge} years old</div>` : ''}
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <button type="button" class="ios-btn ios-btn-primary" onclick="closeModal()">
+              Keep Locked & Continue Operation
+            </button>
+            <button type="button" id="btnUnlockAndClearFields" class="ios-btn ios-btn-danger ios-btn-sm">
+              Clear All Fields & Unlock for Different Patient
+            </button>
+          </div>
+        </div>
+      `;
+
+      document.getElementById("btnUnlockAndClearFields").addEventListener("click", () => {
+        closeModal();
+        unlockAndClearPatient();
+      });
+
+      openModal();
+    });
 
     const itemSelect = document.getElementById("surgItemSelect");
     const dynamicSection = document.getElementById("dynamicAttributesSection");
@@ -503,6 +767,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Submit Operation
     document.getElementById("btnSubmitOperation").addEventListener("click", async () => {
+      const patientId = document.getElementById("surgPatientId").value.trim();
       const patientName = document.getElementById("surgPatientName").value.trim();
       const specialistCare = document.getElementById("surgSpecialist").value;
       const patientAge = document.getElementById("surgPatientAge").value;
@@ -525,7 +790,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
 
+      // Chronological age validation check against historical ops
+      if (patientId && patientAge) {
+        try {
+          inventory.validatePatientAge(patientId, opDate, patientAge);
+        } catch (ageErr) {
+          alert("Chronological Age Validation Error: " + ageErr.message);
+          return;
+        }
+      }
+
       const reportPayload = {
+        patientId: patientId || undefined,
         patientName,
         specialistCare,
         patientAge,
@@ -544,7 +820,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         await inventory.submitSurgicalConsumption(reportPayload);
         surgicalCart = [];
-        alert("Surgical consumption successfully recorded! Storage counts updated.");
+        alert("Surgical consumption successfully recorded! Storage counts updated and linked to patient profile.");
         switchTab("logbook");
       } catch (err) {
         alert("Error logging surgical consumption: " + err.message);
@@ -855,8 +1131,14 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
               `).join("")}
             </div>
+
+            <!-- Prominent Specific Combination Stock Display -->
+            <div id="refillSpecStockBanner" style="margin-top:10px;"></div>
           </div>
-        ` : ''}
+        ` : `
+          <!-- Non-variant item stock display -->
+          <div id="refillSpecStockBanner" style="margin-bottom:12px;"></div>
+        `}
 
         <div class="ios-input-group">
           <label class="ios-label">Amount to Add (+ Quantity) *</label>
@@ -864,10 +1146,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         </div>
 
         <div style="display:flex;gap:6px;margin-bottom:14px;">
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 1">+1</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 3">+3</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 5">+5</button>
-          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 10">+10</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 1; window.updateRefillSpecBanner && window.updateRefillSpecBanner();">+1</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 3; window.updateRefillSpecBanner && window.updateRefillSpecBanner();">+3</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 5; window.updateRefillSpecBanner && window.updateRefillSpecBanner();">+5</button>
+          <button type="button" class="btn-ctrl" onclick="document.getElementById('refillAmountInput').value = 10; window.updateRefillSpecBanner && window.updateRefillSpecBanner();">+10</button>
         </div>
 
         <div class="ios-input-group">
@@ -880,6 +1162,94 @@ document.addEventListener("DOMContentLoaded", async () => {
         </button>
       </form>
     `;
+
+    function updateRefillSpecBanner() {
+      const banner = document.getElementById("refillSpecStockBanner");
+      if (!banner) return;
+
+      const refillAmount = parseInt(document.getElementById("refillAmountInput")?.value, 10) || 0;
+
+      if (!hasAttrs) {
+        const cur = item.quantity;
+        const proj = cur + refillAmount;
+        banner.innerHTML = `
+          <div style="padding:12px 14px;border-radius:12px;background:rgba(0,122,255,0.06);border:1.5px solid var(--ios-blue);">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:800;color:var(--ios-blue);text-transform:uppercase;">📦 Current Storage Stock</span>
+              <span class="stock-badge ${cur <= 0 ? 'out' : (cur <= item.threshold ? 'low' : 'healthy')}">${cur <= 0 ? 'Out of Stock' : (cur <= item.threshold ? 'Low Stock' : 'In Stock')}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;">
+              <span style="font-size:13px;color:var(--ios-text-secondary);font-weight:600;">Remaining in Storage:</span>
+              <span style="font-size:22px;font-weight:800;color:var(--ios-text-primary);">${cur} <small style="font-size:12px;font-weight:600;color:var(--ios-text-secondary);">${item.unit}</small></span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12.5px;margin-top:6px;border-top:1px solid var(--ios-separator);padding-top:6px;">
+              <span style="color:var(--ios-text-secondary);">Projected Total after +${refillAmount}:</span>
+              <span style="font-weight:800;color:var(--ios-green);font-size:15px;">${proj} ${item.unit}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      // Collect selected attributes
+      const selectedAttrs = {};
+      let allSelected = true;
+      document.querySelectorAll(".refill-attr-input").forEach(inp => {
+        const val = inp.value.trim();
+        if (!val) allSelected = false;
+        selectedAttrs[inp.dataset.attrName] = val;
+      });
+
+      if (!allSelected) {
+        banner.innerHTML = `
+          <div style="padding:10px 12px;border-radius:10px;background:var(--ios-card-inner);border:1px dashed var(--ios-separator);font-size:12px;color:var(--ios-text-secondary);text-align:center;">
+            ℹ️ Select all parameters above to view remaining stock for that exact combination.
+          </div>
+        `;
+        return;
+      }
+
+      const stock = inventory.getVariantStock(item.id, selectedAttrs);
+      const curQty = stock.quantity;
+      const projQty = curQty + refillAmount;
+      const isOut = curQty <= 0;
+      const isLow = !isOut && curQty <= stock.threshold;
+      const badgeClass = isOut ? "out" : (isLow ? "low" : "healthy");
+      const badgeText = isOut ? "Out of Stock" : (isLow ? "Low Stock" : "In Stock");
+
+      const specSummary = Object.entries(selectedAttrs).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(" • ");
+
+      banner.innerHTML = `
+        <div style="padding:12px 14px;border-radius:12px;background:rgba(0,122,255,0.06);border:1.5px solid var(--ios-blue);box-shadow:0 2px 8px rgba(0,122,255,0.08);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:800;color:var(--ios-blue);text-transform:uppercase;letter-spacing:0.5px;">
+              📦 Remaining Stock for this Specification
+            </span>
+            <span class="stock-badge ${badgeClass}">${badgeText}</span>
+          </div>
+
+          <div style="font-size:11.5px;color:var(--ios-text-secondary);margin-bottom:8px;line-height:1.4;">
+            ${specSummary}
+          </div>
+
+          <div style="display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--ios-separator);border-bottom:1px solid var(--ios-separator);padding:8px 0;margin-bottom:8px;">
+            <span style="font-size:13px;color:var(--ios-text-secondary);font-weight:600;">Remaining in Storage:</span>
+            <span style="font-size:24px;font-weight:800;color:${isOut ? 'var(--ios-red)' : (isLow ? 'var(--ios-orange)' : 'var(--ios-green)')};">
+              ${curQty} <small style="font-size:13px;font-weight:600;color:var(--ios-text-secondary);">${item.unit}</small>
+            </span>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;font-size:12.5px;">
+            <span style="color:var(--ios-text-secondary);">Projected Total after Refill (+${refillAmount}):</span>
+            <span style="font-weight:800;color:var(--ios-green);font-size:16px;">
+              ${projQty} ${item.unit}
+            </span>
+          </div>
+        </div>
+      `;
+    }
+
+    window.updateRefillSpecBanner = updateRefillSpecBanner;
 
     // Hook existing variant select to auto-populate the inputs
     const existSelect = document.getElementById("refillExistingVariantSelect");
@@ -895,10 +1265,23 @@ document.addEventListener("DOMContentLoaded", async () => {
                 inp.value = chosenVar.attributes[name];
               }
             });
+            updateRefillSpecBanner();
           }
         }
       });
     }
+
+    document.querySelectorAll(".refill-attr-input").forEach(sel => {
+      sel.addEventListener("change", () => {
+        if (existSelect) existSelect.value = "";
+        updateRefillSpecBanner();
+      });
+    });
+
+    document.getElementById("refillAmountInput").addEventListener("input", updateRefillSpecBanner);
+
+    // Initial banner render
+    updateRefillSpecBanner();
 
     document.getElementById("refillForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -1247,73 +1630,334 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderLogbookView(container) {
     const db = getDb();
     const specialists = db?.specialists || [];
+    let currentSubView = "logs"; // "logs" or "patients"
     let selectedDate = "";
     let selectedSpecialist = "all";
     let searchQ = "";
+    let patientSearchQ = "";
 
-    function renderLogEntries() {
-      const logs = inventory.getUsageLogs({
-        date: selectedDate,
-        specialist: selectedSpecialist,
-        search: searchQ
+    function renderView() {
+      container.innerHTML = `
+        <div class="ios-segmented-control" style="margin-bottom:14px;">
+          <button type="button" class="segment-btn ${currentSubView === 'logs' ? 'active' : ''}" id="btnSubViewLogs">
+            📋 Operative Shift Log
+          </button>
+          <button type="button" class="segment-btn ${currentSubView === 'patients' ? 'active' : ''}" id="btnSubViewPatients">
+            👤 Patient Clinical Profiles
+          </button>
+        </div>
+
+        <div id="subViewMainContent"></div>
+      `;
+
+      document.getElementById("btnSubViewLogs").addEventListener("click", () => {
+        if (currentSubView !== "logs") {
+          currentSubView = "logs";
+          renderView();
+        }
       });
 
-      const listContainer = document.getElementById("logbookEntriesList");
-      const statsBadge = document.getElementById("logStatsSummary");
+      document.getElementById("btnSubViewPatients").addEventListener("click", () => {
+        if (currentSubView !== "patients") {
+          currentSubView = "patients";
+          renderView();
+        }
+      });
 
-      if (statsBadge) {
-        statsBadge.textContent = `${logs.length} Surgeries Logged`;
+      const mainContent = document.getElementById("subViewMainContent");
+      if (currentSubView === "logs") {
+        renderOperativeLogsSubView(mainContent);
+      } else {
+        renderPatientProfilesSubView(mainContent);
+      }
+    }
+
+    function renderOperativeLogsSubView(subContainer) {
+      subContainer.innerHTML = `
+        <div class="ios-card" style="padding:12px 14px;margin-bottom:12px;">
+          <div class="ios-section-header" style="margin-bottom:8px;">
+            <span class="ios-section-title">Logbook Filter & Day Selector</span>
+            <span id="logStatsSummary" class="stock-badge healthy">Loading...</span>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <div style="flex:1;">
+              <label class="ios-label">Filter Day</label>
+              <input type="date" id="logDateFilter" class="ios-input" value="${selectedDate}">
+            </div>
+            <div style="display:flex;align-items:flex-end;">
+              <button type="button" id="btnClearDateFilter" class="btn-ctrl" style="height:42px;padding:0 12px;">All Days</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:10px;">
+            <div style="flex:1;">
+              <label class="ios-label">Attending Specialist Care</label>
+              <select id="logSpecialistFilter" class="ios-select">
+                <option value="all">All Specialists</option>
+                ${specialists.map(s => `<option value="${s.name}" ${selectedSpecialist === s.name ? 'selected' : ''}>${s.name}</option>`).join("")}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <input type="text" id="logSearchFilter" class="ios-input" placeholder="🔍 Search patient name, ID, procedure, or item..." value="${searchQ}">
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:10px;">
+            <button type="button" id="btnExportCsv" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
+              📥 Export CSV
+            </button>
+            <button type="button" id="btnPrintLog" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
+              🖨️ Print Summary
+            </button>
+          </div>
+        </div>
+
+        <div id="logbookEntriesList"></div>
+      `;
+
+      function renderEntries() {
+        const logs = inventory.getUsageLogs({
+          date: selectedDate,
+          specialist: selectedSpecialist,
+          search: searchQ
+        });
+
+        const listContainer = document.getElementById("logbookEntriesList");
+        const statsBadge = document.getElementById("logStatsSummary");
+
+        if (statsBadge) {
+          statsBadge.textContent = `${logs.length} Surgeries Logged`;
+        }
+
+        if (!listContainer) return;
+
+        if (logs.length === 0) {
+          listContainer.innerHTML = `
+            <div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);" class="ios-card">
+              <svg style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+              <div>No operative logs found matching the filter criteria.</div>
+            </div>
+          `;
+          return;
+        }
+
+        listContainer.innerHTML = logs.map(log => {
+          const timeFormatted = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          const itemsRendered = (log.items || []).map(it => {
+            const paramsList = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(" • ");
+            return `
+              <div class="log-item-bullet">
+                🔹 <strong>${it.quantity}x ${it.itemName}</strong>
+                ${paramsList ? `<div style="color:var(--ios-text-secondary);font-size:11.5px;padding-left:16px;">${paramsList}</div>` : ''}
+                ${it.lotNumber ? `<div style="color:var(--ios-text-tertiary);font-size:10.5px;padding-left:16px;">Batch/Lot: ${it.lotNumber}</div>` : ''}
+              </div>
+            `;
+          }).join("");
+
+          return `
+            <div class="surgical-log-entry">
+              <div class="log-date-header">
+                <span class="log-date-badge">📅 ${log.date} at ${timeFormatted}</span>
+                <span style="font-size:11.5px;color:var(--ios-text-secondary);font-weight:600;">Dr. ${log.loggedBy?.fullName || log.loggedBy?.username}</span>
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+                <div class="patient-highlight" style="margin-bottom:0;">👤 ${log.patientName} ${log.patientAge ? `(${log.patientAge}y)` : ''}</div>
+                ${log.patientId ? `<span style="background:rgba(0,122,255,0.12);color:var(--ios-blue);border-radius:10px;padding:2px 7px;font-size:10.5px;font-weight:700;font-family:var(--font-mono);">${log.patientId}</span>` : ''}
+              </div>
+
+              <div class="procedure-title">🏥 ${log.procedureName || 'Neurosurgery Operation'}</div>
+
+              <div style="display:flex;gap:12px;font-size:12px;color:var(--ios-text-secondary);margin-bottom:8px;">
+                <span><strong>Specialist:</strong> ${log.specialistCare}</span>
+                <span><strong>Location:</strong> ${log.bedNumber || 'OT'}</span>
+              </div>
+
+              <div class="log-items-list">
+                <div style="font-size:11.5px;font-weight:700;color:var(--ios-blue);margin-bottom:4px;text-transform:uppercase;">Consumed Storage Items</div>
+                ${itemsRendered}
+              </div>
+
+              ${log.notes ? `
+                <div style="margin-top:8px;font-size:12px;color:var(--ios-text-secondary);font-style:italic;background:var(--ios-card);padding:6px 8px;border-radius:6px;border-left:2px solid var(--ios-blue);">
+                  "${log.notes}"
+                </div>
+              ` : ''}
+            </div>
+          `;
+        }).join("");
       }
 
-      if (!listContainer) return;
+      document.getElementById("logDateFilter").addEventListener("change", (e) => {
+        selectedDate = e.target.value;
+        renderEntries();
+      });
 
-      if (logs.length === 0) {
-        listContainer.innerHTML = `
-          <div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);">
-            <svg style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-            <div>No operative logs found. Operative logbook is clean.</div>
+      document.getElementById("btnClearDateFilter").addEventListener("click", () => {
+        document.getElementById("logDateFilter").value = "";
+        selectedDate = "";
+        renderEntries();
+      });
+
+      document.getElementById("logSpecialistFilter").addEventListener("change", (e) => {
+        selectedSpecialist = e.target.value;
+        renderEntries();
+      });
+
+      document.getElementById("logSearchFilter").addEventListener("input", (e) => {
+        searchQ = e.target.value;
+        renderEntries();
+      });
+
+      document.getElementById("btnExportCsv").addEventListener("click", () => {
+        const logs = inventory.getUsageLogs({ date: selectedDate, specialist: selectedSpecialist, search: searchQ });
+        exportLogsToCsv(logs);
+      });
+
+      document.getElementById("btnPrintLog").addEventListener("click", () => window.print());
+
+      renderEntries();
+    }
+
+    function renderPatientProfilesSubView(subContainer) {
+      const patients = inventory.getAllPatients(patientSearchQ);
+
+      subContainer.innerHTML = `
+        <div class="ios-card" style="padding:12px 14px;margin-bottom:12px;">
+          <div class="ios-section-header" style="margin-bottom:8px;">
+            <span class="ios-section-title">Patient Records Directory</span>
+            <span class="stock-badge healthy" id="patientEnrolledCount">${patients.length} Enrolled</span>
+          </div>
+
+          <div>
+            <input type="text" id="patientSearchFilter" class="ios-input" placeholder="🔍 Search patient by Name, ID (PID-xxxx), or procedure..." value="${patientSearchQ}">
+          </div>
+        </div>
+
+        <div id="patientProfilesList">
+          ${renderPatientCards(patients)}
+        </div>
+      `;
+
+      document.getElementById("patientSearchFilter").addEventListener("input", (e) => {
+        patientSearchQ = e.target.value;
+        const filtered = inventory.getAllPatients(patientSearchQ);
+        const countBadge = document.getElementById("patientEnrolledCount");
+        if (countBadge) countBadge.textContent = `${filtered.length} Enrolled`;
+        document.getElementById("patientProfilesList").innerHTML = renderPatientCards(filtered);
+        attachPatientAccordionListeners();
+      });
+
+      attachPatientAccordionListeners();
+    }
+
+    function renderPatientCards(patients) {
+      if (patients.length === 0) {
+        return `
+          <div style="text-align:center;padding:40px 10px;color:var(--ios-text-secondary);" class="ios-card">
+            <svg style="width:36px;height:36px;margin:0 auto 8px auto;opacity:0.4;" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <div style="font-weight:600;margin-bottom:4px;">No patient records found</div>
+            <div style="font-size:12px;">When surgeries are logged, patients are enrolled with unique clinical IDs.</div>
           </div>
         `;
-        return;
       }
 
-      listContainer.innerHTML = logs.map(log => {
-        const timeFormatted = new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      return patients.map(patient => {
+        const ops = patient.operations || [];
+        const opCount = ops.length;
 
-        const itemsRendered = (log.items || []).map(it => {
+        return `
+          <div class="ios-card patient-record-card" style="margin-bottom:12px;padding:14px;" id="patientCard_${patient.id}">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                  <h4 style="margin:0;font-size:16px;font-weight:700;color:var(--ios-text-primary);">${patient.name}</h4>
+                  <span style="background:rgba(0,122,255,0.12);color:var(--ios-blue);border-radius:12px;padding:2px 8px;font-size:11px;font-weight:700;font-family:var(--font-mono);letter-spacing:0.5px;">
+                    ${patient.id}
+                  </span>
+                </div>
+                <div style="font-size:12px;color:var(--ios-text-secondary);margin-top:4px;">
+                  <span>👤 ${patient.gender || 'Not specified'}</span>
+                  ${patient.lastAge ? ` • <span>Age: <strong>${patient.lastAge}y</strong></span>` : ''}
+                  ${patient.lastDate ? ` • <span>Latest Surgery: <strong>${patient.lastDate}</strong></span>` : ''}
+                </div>
+              </div>
+              <span class="stock-badge ${opCount > 0 ? 'healthy' : 'secondary'}">
+                ${opCount} Surgery${opCount === 1 ? '' : 'ies'}
+              </span>
+            </div>
+
+            <!-- Quick Clinical Tags -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;font-size:11.5px;">
+              ${patient.lastSpecialist ? `<span style="background:var(--ios-bg-tertiary);padding:3px 8px;border-radius:6px;color:var(--ios-text-secondary);">👨‍⚕️ ${patient.lastSpecialist}</span>` : ''}
+              ${patient.lastProcedure ? `<span style="background:var(--ios-bg-tertiary);padding:3px 8px;border-radius:6px;color:var(--ios-text-secondary);">🏥 ${patient.lastProcedure}</span>` : ''}
+              ${patient.lastBed ? `<span style="background:var(--ios-bg-tertiary);padding:3px 8px;border-radius:6px;color:var(--ios-text-secondary);">🛏️ ${patient.lastBed}</span>` : ''}
+            </div>
+
+            <!-- Collapsible Accordion Button (NOT EXPANDED BY DEFAULT!) -->
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm btn-toggle-patient-ops" data-patient-id="${patient.id}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;">
+                <span class="accordion-arrow">▶</span> <span class="accordion-label">View Operations History (${opCount})</span>
+              </button>
+              <button type="button" class="ios-btn ios-btn-primary ios-btn-sm" onclick="window.startSurgeryForPatient('${patient.id}')" style="padding:0 12px;font-size:12px;" title="Record new surgery for this patient">
+                + Add Op
+              </button>
+            </div>
+
+            <!-- Collapsed Timeline Container (Hidden by default!) -->
+            <div id="patientOpsTimeline_${patient.id}" style="display:none;margin-top:12px;border-top:1px solid var(--ios-separator);padding-top:12px;">
+              ${renderPatientOpsTimeline(ops)}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function renderPatientOpsTimeline(ops) {
+      if (!ops || ops.length === 0) {
+        return `<div style="font-size:12px;color:var(--ios-text-secondary);font-style:italic;text-align:center;padding:10px;">No surgery logs registered yet for this patient profile.</div>`;
+      }
+
+      return ops.map((op, idx) => {
+        const itemsRendered = (op.items || []).map(it => {
           const paramsList = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `<strong>${k}:</strong> ${v}`).join(" • ");
           return `
-            <div class="log-item-bullet">
+            <div style="font-size:11.5px;margin-top:3px;padding-left:8px;border-left:2px solid var(--ios-blue);">
               🔹 <strong>${it.quantity}x ${it.itemName}</strong>
-              ${paramsList ? `<div style="color:var(--ios-text-secondary);font-size:11.5px;padding-left:16px;">${paramsList}</div>` : ''}
-              ${it.lotNumber ? `<div style="color:var(--ios-text-tertiary);font-size:10.5px;padding-left:16px;">Batch/Lot: ${it.lotNumber}</div>` : ''}
+              ${paramsList ? `<div style="color:var(--ios-text-secondary);font-size:11px;">${paramsList}</div>` : ''}
+              ${it.lotNumber ? `<div style="color:var(--ios-text-tertiary);font-size:10px;font-family:var(--font-mono);">Lot: ${it.lotNumber}</div>` : ''}
             </div>
           `;
         }).join("");
 
         return `
-          <div class="surgical-log-entry">
-            <div class="log-date-header">
-              <span class="log-date-badge">📅 ${log.date} at ${timeFormatted}</span>
-              <span style="font-size:11.5px;color:var(--ios-text-secondary);font-weight:600;">Dr. ${log.loggedBy?.fullName || log.loggedBy?.username}</span>
+          <div style="background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:10px;padding:10px;margin-bottom:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:12px;font-weight:700;color:var(--ios-blue);">📅 Op #${idx + 1}: ${op.date}</span>
+              <span style="font-size:11px;color:var(--ios-text-secondary);font-weight:600;">Age: <strong>${op.patientAge || 'N/A'}y</strong></span>
             </div>
 
-            <div class="patient-highlight">👤 ${log.patientName} ${log.patientAge ? `(${log.patientAge}y)` : ''}</div>
-            <div class="procedure-title">🏥 ${log.procedureName || 'Neurosurgery Operation'}</div>
-
-            <div style="display:flex;gap:12px;font-size:12px;color:var(--ios-text-secondary);margin-bottom:8px;">
-              <span><strong>Specialist:</strong> ${log.specialistCare}</span>
-              <span><strong>Location:</strong> ${log.bedNumber || 'OT'}</span>
+            <div style="font-size:13px;font-weight:700;color:var(--ios-text-primary);margin-bottom:4px;">
+              🏥 ${op.procedureName || 'Neurosurgery Operation'}
             </div>
 
-            <div class="log-items-list">
-              <div style="font-size:11.5px;font-weight:700;color:var(--ios-blue);margin-bottom:4px;text-transform:uppercase;">Consumed Storage Items</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--ios-text-secondary);margin-bottom:6px;">
+              <span>👨‍⚕️ ${op.specialistCare}</span>
+              ${op.bedNumber ? ` • <span>🛏️ ${op.bedNumber}</span>` : ''}
+              • <span>By: ${op.loggedBy?.fullName || op.loggedBy?.username}</span>
+            </div>
+
+            <div style="margin-top:6px;">
+              <div style="font-size:11px;font-weight:700;color:var(--ios-text-secondary);text-transform:uppercase;margin-bottom:2px;">Consumed Storage Items:</div>
               ${itemsRendered}
             </div>
 
-            ${log.notes ? `
-              <div style="margin-top:8px;font-size:12px;color:var(--ios-text-secondary);font-style:italic;background:var(--ios-card);padding:6px 8px;border-radius:6px;border-left:2px solid var(--ios-blue);">
-                "${log.notes}"
+            ${op.notes ? `
+              <div style="margin-top:6px;font-size:11.5px;color:var(--ios-text-secondary);font-style:italic;background:var(--ios-card);padding:4px 8px;border-radius:6px;">
+                "${op.notes}"
               </div>
             ` : ''}
           </div>
@@ -1321,80 +1965,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       }).join("");
     }
 
-    container.innerHTML = `
-      <div class="ios-card" style="padding:12px 14px;">
-        <div class="ios-section-header" style="margin-bottom:8px;">
-          <span class="ios-section-title">Logbook Filter & Day Selector</span>
-          <span id="logStatsSummary" class="stock-badge healthy">Loading...</span>
-        </div>
+    function attachPatientAccordionListeners() {
+      document.querySelectorAll(".btn-toggle-patient-ops").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const patientId = btn.dataset.patientId;
+          const timeline = document.getElementById(`patientOpsTimeline_${patientId}`);
+          const arrow = btn.querySelector(".accordion-arrow");
+          const label = btn.querySelector(".accordion-label");
+          if (!timeline) return;
 
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <div style="flex:1;">
-            <label class="ios-label">Filter Day</label>
-            <input type="date" id="logDateFilter" class="ios-input">
-          </div>
-          <div style="display:flex;align-items:flex-end;">
-            <button type="button" id="btnClearDateFilter" class="btn-ctrl" style="height:42px;padding:0 12px;">All Days</button>
-          </div>
-        </div>
+          const isCurrentlyHidden = timeline.style.display === "none";
+          if (isCurrentlyHidden) {
+            timeline.style.display = "block";
+            if (arrow) arrow.textContent = "▼";
+            if (label) label.textContent = "Hide Operations History";
+            btn.classList.add("ios-btn-active");
+          } else {
+            timeline.style.display = "none";
+            if (arrow) arrow.textContent = "▶";
+            const patient = inventory.getPatientById(patientId);
+            const count = patient?.operationsCount || 0;
+            if (label) label.textContent = `View Operations History (${count})`;
+            btn.classList.remove("ios-btn-active");
+          }
+        });
+      });
+    }
 
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
-          <div style="flex:1;">
-            <label class="ios-label">Attending Specialist Care</label>
-            <select id="logSpecialistFilter" class="ios-select">
-              <option value="all">All Specialists</option>
-              ${specialists.map(s => `<option value="${s.name}">${s.name}</option>`).join("")}
-            </select>
-          </div>
-        </div>
-
-        <div>
-          <input type="text" id="logSearchFilter" class="ios-input" placeholder="🔍 Search patient name, procedure, or item...">
-        </div>
-
-        <div style="display:flex;gap:8px;margin-top:10px;">
-          <button type="button" id="btnExportCsv" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
-            📥 Export CSV
-          </button>
-          <button type="button" id="btnPrintLog" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
-            🖨️ Print Summary
-          </button>
-        </div>
-      </div>
-
-      <div id="logbookEntriesList"></div>
-    `;
-
-    document.getElementById("logDateFilter").addEventListener("change", (e) => {
-      selectedDate = e.target.value;
-      renderLogEntries();
-    });
-
-    document.getElementById("btnClearDateFilter").addEventListener("click", () => {
-      document.getElementById("logDateFilter").value = "";
-      selectedDate = "";
-      renderLogEntries();
-    });
-
-    document.getElementById("logSpecialistFilter").addEventListener("change", (e) => {
-      selectedSpecialist = e.target.value;
-      renderLogEntries();
-    });
-
-    document.getElementById("logSearchFilter").addEventListener("input", (e) => {
-      searchQ = e.target.value;
-      renderLogEntries();
-    });
-
-    document.getElementById("btnExportCsv").addEventListener("click", () => {
-      const logs = inventory.getUsageLogs({ date: selectedDate, specialist: selectedSpecialist, search: searchQ });
-      exportLogsToCsv(logs);
-    });
-
-    document.getElementById("btnPrintLog").addEventListener("click", () => window.print());
-
-    renderLogEntries();
+    renderView();
   }
+
+  window.startSurgeryForPatient = (patientId) => {
+    const patient = inventory.getPatientById(patientId);
+    if (!patient) return;
+    switchTab("surgery");
+    setTimeout(() => {
+      if (window.linkAndLockPatient) {
+        window.linkAndLockPatient(patient);
+      }
+    }, 120);
+  };
 
   function exportLogsToCsv(logs) {
     if (!logs || logs.length === 0) {
