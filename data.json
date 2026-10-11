@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T13:22:06.036Z",
+    "lastUpdated": "2026-10-11T13:23:00.754Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -314,6 +314,27 @@
       "phone": "07805195075",
       "createdAt": "2026-10-11T13:18:58.606Z",
       "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3usj68",
+      "username": "j",
+      "passwordPlain": "j",
+      "passwordHash": "h_6a",
+      "fullName": "J",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-7fg1vg4-mv3umy52",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T13:23:00.752Z",
+          "lastActive": "2026-10-11T13:23:00.752Z"
+        }
+      ],
+      "phone": "",
+      "createdAt": "2026-10-11T13:23:00.752Z"
     }
   ],
   "items": [
@@ -910,6 +931,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3usj68",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: J",
+      "message": "Staff J (@j) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T13:23:00.752Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3usj68",
+        "username": "j"
+      }
+    },
     {
       "id": "notif-mv3uncby",
       "type": "signup_request",
