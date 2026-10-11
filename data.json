@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.2.0",
-    "lastUpdated": "2026-10-10T23:59:11.617Z",
+    "lastUpdated": "2026-10-11T00:00:06.110Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -850,7 +850,9 @@
       "title": "New Sign-up Request: حسن مرزوق",
       "message": "Staff حسن مرزوق (@حسن) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:59:11.617Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "userId": "usr-mv322tc1",
         "username": "حسن"
