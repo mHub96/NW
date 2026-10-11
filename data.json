@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.4.0",
-    "lastUpdated": "2026-10-11T12:20:47.195Z",
+    "lastUpdated": "2026-10-11T12:20:51.035Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -873,7 +873,9 @@
       "title": "New Sign-up Request: Conrad",
       "message": "Staff Conrad (@con) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:19:43.348Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "userId": "usr-mv3sj52q",
         "username": "con"
