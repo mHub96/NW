@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:14:39.702Z",
+    "lastUpdated": "2026-10-11T15:14:42.583Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -108,27 +108,6 @@
       ],
       "phone": "+9647805195075",
       "createdAt": "2026-09-01T08:00:00.000Z"
-    },
-    {
-      "id": "usr-mv2yydsa",
-      "username": "rafid",
-      "passwordPlain": "1234",
-      "passwordHash": "h_170842",
-      "fullName": "Dr. Rafid Khalid",
-      "role": "REGULAR",
-      "status": "approved",
-      "deviceLimit": "1",
-      "registeredDevices": [
-        {
-          "id": "dev-w9d20x9-mv2ywklv",
-          "name": "Linux Workstation",
-          "platform": "Linux armv81",
-          "registeredAt": "2026-10-10T22:31:45.994Z",
-          "lastActive": "2026-10-10T22:39:13.317Z"
-        }
-      ],
-      "phone": "07801112222",
-      "createdAt": "2026-10-10T22:31:45.994Z"
     },
     {
       "id": "usr-mv315pgz",
