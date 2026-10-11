@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T14:58:22.608Z",
+    "lastUpdated": "2026-10-11T14:59:40.803Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -357,27 +357,6 @@
       ],
       "phone": "0805195075",
       "createdAt": "2026-10-11T14:57:47.034Z"
-    },
-    {
-      "id": "usr-mv3y766o",
-      "username": "ي",
-      "passwordPlain": "ي",
-      "passwordHash": "h_64a",
-      "fullName": "ي",
-      "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
-      "registeredDevices": [
-        {
-          "id": "dev-88i5qzw-mv2zawci",
-          "name": "Windows PC (Desktop)",
-          "platform": "Win32",
-          "registeredAt": "2026-10-11T14:58:22.608Z",
-          "lastActive": "2026-10-11T14:58:22.608Z"
-        }
-      ],
-      "phone": "1",
-      "createdAt": "2026-10-11T14:58:22.608Z"
     }
   ],
   "items": [
@@ -975,23 +954,6 @@
   ],
   "notifications": [
     {
-      "id": "notif-mv3y766o",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: ي",
-      "message": "Staff ي (@ي) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T14:58:22.608Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [],
-      "metadata": {
-        "userId": "usr-mv3y766o",
-        "username": "ي"
-      }
-    },
-    {
       "id": "notif-mv3y6eqi",
       "type": "signup_request",
       "priority": "warning",
@@ -1221,7 +1183,7 @@
       "role": "OWNER",
       "deviceId": "dev-w9d20x9-mv2ywklv",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T13:21:21.869Z"
+      "updatedAt": "2026-10-11T14:59:39.907Z"
     }
   ]
 }
