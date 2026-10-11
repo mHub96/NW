@@ -225,6 +225,18 @@ class AuthManager {
     if (role) user.role = role;
     if (deviceLimit !== undefined) user.deviceLimit = deviceLimit;
 
+    // Mark any signup_request notifications for this user as read
+    if (db.notifications) {
+      db.notifications.forEach(n => {
+        if (n.type === "signup_request" && n.metadata?.userId === userId) {
+          if (!n.readBy) n.readBy = [];
+          if (this.currentUser && !n.readBy.includes(this.currentUser.username)) {
+            n.readBy.push(this.currentUser.username);
+          }
+        }
+      });
+    }
+
     const notif = {
       id: "notif-" + Date.now().toString(36),
       type: "user_approved",
@@ -250,14 +262,30 @@ class AuthManager {
   async rejectUser(userId, reason = "Rejected by administration") {
     if (!this.isAdmin()) throw new Error("Only Managers (Owner/Admin) can reject users.");
     const db = this.getDb();
-    const user = db.users.find(u => u.id === userId);
-    if (!user) throw new Error("User not found.");
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) throw new Error("User not found.");
 
-    user.status = "rejected";
-    user.rejectReason = reason;
+    const user = db.users[userIndex];
+    const username = user.username;
+    const fullName = user.fullName;
 
-    await this.saveDb(db, `Rejected user: @${user.username}`);
-    return user;
+    // Completely remove the rejected user from the database
+    db.users.splice(userIndex, 1);
+
+    // Mark any signup_request notifications for this user as read
+    if (db.notifications) {
+      db.notifications.forEach(n => {
+        if (n.type === "signup_request" && n.metadata?.userId === userId) {
+          if (!n.readBy) n.readBy = [];
+          if (this.currentUser && !n.readBy.includes(this.currentUser.username)) {
+            n.readBy.push(this.currentUser.username);
+          }
+        }
+      });
+    }
+
+    await this.saveDb(db, `Rejected and removed registration request: @${username}`);
+    return { id: userId, username, fullName };
   }
 
   // Update user access: Owner and Admin can edit user parameters
@@ -345,4 +373,9 @@ class AuthManager {
   }
 }
 
-window.AuthManager = AuthManager;
+if (typeof window !== "undefined") {
+  window.AuthManager = AuthManager;
+}
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = AuthManager;
+}

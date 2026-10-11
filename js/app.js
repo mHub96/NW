@@ -2514,7 +2514,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const db = getDb();
     const users = db?.users || [];
     const pendingUsers = users.filter(u => u.status === "pending");
-    const activeUsers = users.filter(u => u.status !== "pending");
+    const activeUsers = users.filter(u => u.status === "approved" || (!u.status && u.role));
 
     container.innerHTML = `
       <div class="ios-card" style="border:1.5px solid ${pendingUsers.length > 0 ? 'var(--ios-orange)' : 'var(--ios-card-border)'};">
