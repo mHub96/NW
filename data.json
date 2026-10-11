@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:09:32.211Z",
+    "lastUpdated": "2026-10-11T15:10:14.901Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -452,6 +452,27 @@
       ],
       "phone": "123312",
       "createdAt": "2026-10-11T15:09:32.210Z"
+    },
+    {
+      "id": "usr-mv3ymfsl",
+      "username": "asd2",
+      "passwordPlain": "asd",
+      "passwordHash": "h_17a72",
+      "fullName": "asd3",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T15:10:14.901Z",
+          "lastActive": "2026-10-11T15:10:14.901Z"
+        }
+      ],
+      "phone": "1234123",
+      "createdAt": "2026-10-11T15:10:14.901Z"
     }
   ],
   "items": [
@@ -1048,6 +1069,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3ymfsl",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: asd3",
+      "message": "Staff asd3 (@asd2) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T15:10:14.901Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3ymfsl",
+        "username": "asd2"
+      }
+    },
     {
       "id": "notif-mv3yliuq",
       "type": "signup_request",
