@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:15:51.079Z",
+    "lastUpdated": "2026-10-11T15:15:54.000Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -744,7 +744,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3ynunj"
@@ -763,7 +764,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3ynunj",
@@ -783,7 +785,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3ymfsl",
@@ -803,7 +806,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3yliuq",
@@ -823,7 +827,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3ygv94",
@@ -843,7 +848,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3y9ox3",
@@ -863,7 +869,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3y766o",
@@ -883,7 +890,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3y6eqi",
@@ -903,7 +911,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3usj68",
@@ -923,7 +932,8 @@
       ],
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3uncby",
@@ -939,7 +949,8 @@
       "timestamp": "2026-10-11T12:21:12.241Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3sl1nz",
@@ -955,7 +966,8 @@
       "timestamp": "2026-10-11T12:19:43.348Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv3sj52q",
@@ -971,7 +983,8 @@
       "timestamp": "2026-10-10T23:59:11.617Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv322tc1",
@@ -987,7 +1000,8 @@
       "timestamp": "2026-10-10T23:54:50.202Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1005,7 +1019,8 @@
       "timestamp": "2026-10-10T23:50:13.199Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1023,7 +1038,8 @@
       "timestamp": "2026-10-10T23:33:26.963Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "userId": "usr-mv315pgz",
@@ -1039,7 +1055,8 @@
       "timestamp": "2026-10-10T23:06:48.063Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1057,7 +1074,8 @@
       "timestamp": "2026-10-10T23:05:08.631Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {
         "itemId": "item-vpshunt-01",
@@ -1077,7 +1095,8 @@
       "timestamp": "2026-10-11T01:50:00.000Z",
       "readBy": [
         "owner",
-        "mrj"
+        "mrj",
+        "mrja"
       ],
       "metadata": {}
     }
@@ -1134,11 +1153,11 @@
         "p256dh": "BGC9dwzGoqLJrv0rwEEXWRqWciKpxa4UerTbC0qWP3mOuDSN3cqMfuiTvZcdqERsWiWZYXWbanJgheuvPLPghdQ",
         "auth": "n774xnPvSYNOph_oUOEfYQ"
       },
-      "username": "mrja",
+      "username": "mrj",
       "role": "OWNER",
       "deviceId": "dev-jp4bdcj-mv3yc9sx",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T15:15:51.079Z"
+      "updatedAt": "2026-10-11T15:12:53.344Z"
     }
   ]
 }
