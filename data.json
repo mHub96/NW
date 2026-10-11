@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:57:51.499Z",
+    "lastUpdated": "2026-10-11T15:58:23.179Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -143,9 +143,9 @@
       "passwordPlain": "1234",
       "passwordHash": "h_170842",
       "fullName": "احمد سالم البارون",
-      "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
+      "role": "ADMIN",
+      "status": "approved",
+      "deviceLimit": "1",
       "registeredDevices": [
         {
           "id": "dev-7fg1vg4-mv3umy52",
@@ -754,6 +754,23 @@
   ],
   "notifications": [
     {
+      "id": "notif-mv40ccei",
+      "type": "user_approved",
+      "priority": "normal",
+      "title": "User Approved: احمد سالم البارون",
+      "message": "احمد سالم البارون (@as) was approved as ADMIN with 1 device limit by د  محمد رياض جعفر.",
+      "timestamp": "2026-10-11T15:58:23.178Z",
+      "targetUsers": [
+        "as"
+      ],
+      "readBy": [
+        "mrj"
+      ],
+      "metadata": {
+        "userId": "usr-mv40bnyi"
+      }
+    },
+    {
       "id": "notif-mv40bnyi",
       "type": "signup_request",
       "priority": "warning",
@@ -764,7 +781,9 @@
         "OWNER",
         "ADMIN"
       ],
-      "readBy": [],
+      "readBy": [
+        "mrj"
+      ],
       "metadata": {
         "userId": "usr-mv40bnyi",
         "username": "as"
