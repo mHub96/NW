@@ -66,8 +66,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   window.addEventListener("neuroware:data_synced", (e) => {
     dbData = e.detail;
-    renderCurrentView();
     notifications.updateBadges();
+
+    // 1. If an active modal sheet is open, do not re-render background to avoid closing or resetting modal
+    const modalActive = document.getElementById("universalModalOverlay")?.classList.contains("active");
+    if (modalActive) return;
+
+    // 2. If user is currently on the Surgery Log tab, NEVER wipe out their active form inputs!
+    // (This completely protects patient inputs, dropdown selections, and surgical tray from being reset!)
+    if (currentTab === "surgery") {
+      return;
+    }
+
+    // 3. Never steal focus or disrupt inputs if user is actively typing or selecting on any tab
+    const activeEl = document.activeElement;
+    if (activeEl && (activeEl.tagName === "INPUT" || activeEl.tagName === "SELECT" || activeEl.tagName === "TEXTAREA")) {
+      return;
+    }
+
+    renderCurrentView();
   });
 
   // 5. Authentication UI Controller
@@ -3057,7 +3074,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const btn = document.getElementById("btnForceSyncCloud");
       btn.textContent = "Syncing...";
       btn.disabled = true;
-      await storage.forceSync();
+      await storage.forceSync(true);
       btn.textContent = "✓ Synced!";
       setTimeout(() => {
         btn.textContent = "🔄 Force Cloud Sync Now";

@@ -14,6 +14,7 @@ class StorageEngine {
     this.lastSyncTime = null;
     this.syncStatus = "idle"; // 'idle' | 'syncing' | 'synced' | 'error' | 'offline'
     this.statusListeners = [];
+    this.lastSyncedSha = null;
     this.deviceInfo = this.initDeviceFingerprint();
   }
 
@@ -295,12 +296,22 @@ class StorageEngine {
     }
   }
 
-  // Force manual cloud refresh
-  async forceSync() {
+  // Force manual cloud refresh (only dispatches data_synced if cloud content is actually new or forced)
+  async forceSync(forceDispatch = false) {
     const cloud = await this.fetchFromGitHub();
     if (cloud) {
-      this.saveLocalDatabase(cloud);
-      window.dispatchEvent(new CustomEvent("neuroware:data_synced", { detail: cloud }));
+      const local = this.getLocalDatabase();
+      const isContentDifferent = !local ||
+        (cloud.meta?.lastUpdated !== local.meta?.lastUpdated) ||
+        (this.currentSha && this.lastSyncedSha && this.lastSyncedSha !== this.currentSha);
+
+      const hadPreviousSync = !!this.lastSyncedSha;
+      this.lastSyncedSha = this.currentSha;
+
+      if (isContentDifferent || forceDispatch || !hadPreviousSync) {
+        this.saveLocalDatabase(cloud);
+        window.dispatchEvent(new CustomEvent("neuroware:data_synced", { detail: cloud }));
+      }
       return { success: true, data: cloud };
     }
     return { success: false, data: this.getLocalDatabase() };
