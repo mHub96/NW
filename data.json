@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.4.0",
-    "lastUpdated": "2026-10-11T12:20:51.035Z",
+    "lastUpdated": "2026-10-11T12:21:12.244Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -256,7 +256,7 @@
       "passwordHash": "h_31",
       "fullName": "Conrad",
       "role": "REGULAR",
-      "status": "rejected",
+      "status": "pending",
       "deviceLimit": 1,
       "registeredDevices": [
         {
@@ -268,8 +268,28 @@
         }
       ],
       "phone": "07805556666",
-      "createdAt": "2026-10-11T12:19:43.348Z",
-      "rejectReason": "Rejected by administration"
+      "createdAt": "2026-10-11T12:19:43.348Z"
+    },
+    {
+      "id": "usr-mv3sl1nz",
+      "username": "c",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "C",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-uhjdrmd-mv3sikk5",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T12:21:12.241Z",
+          "lastActive": "2026-10-11T12:21:12.241Z"
+        }
+      ],
+      "phone": "09876576456",
+      "createdAt": "2026-10-11T12:21:12.241Z"
     }
   ],
   "items": [
@@ -867,15 +887,26 @@
   ],
   "notifications": [
     {
+      "id": "notif-mv3sl1o1",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: C",
+      "message": "Staff C (@c) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T12:21:12.241Z",
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3sl1nz",
+        "username": "c"
+      }
+    },
+    {
       "id": "notif-mv3sj52s",
       "type": "signup_request",
       "priority": "warning",
       "title": "New Sign-up Request: Conrad",
       "message": "Staff Conrad (@con) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:19:43.348Z",
-      "readBy": [
-        "owner"
-      ],
+      "readBy": [],
       "metadata": {
         "userId": "usr-mv3sj52q",
         "username": "con"
