@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T16:00:03.814Z",
+    "lastUpdated": "2026-10-11T16:02:30.276Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -779,7 +779,9 @@
       "timestamp": "2026-10-11T16:00:03.797Z",
       "targetRoles": null,
       "targetUsers": null,
-      "readBy": [],
+      "readBy": [
+        "mrj"
+      ],
       "metadata": {
         "itemId": "item-vpshunt-01",
         "itemName": "VP Shunt System",
