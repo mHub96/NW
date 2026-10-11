@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:11:53.711Z",
+    "lastUpdated": "2026-10-11T15:12:04.600Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -482,9 +482,9 @@
       "passwordPlain": "1996*",
       "passwordHash": "h_2cd4585",
       "fullName": "د. محمد رياض",
-      "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
+      "role": "OWNER",
+      "status": "approved",
+      "deviceLimit": "unlimited",
       "registeredDevices": [
         {
           "id": "dev-88i5qzw-mv2zawci",
@@ -1092,6 +1092,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3yosfr",
+      "type": "user_approved",
+      "priority": "normal",
+      "title": "User Approved: د. محمد رياض",
+      "message": "د. محمد رياض (@mrj) was approved as OWNER with unlimited devices by Dr. Haidar (Chief Neurosurgeon / Storage Director).",
+      "timestamp": "2026-10-11T15:12:04.599Z",
+      "targetUsers": [
+        "mrj"
+      ],
+      "readBy": [
+        "owner"
+      ],
+      "metadata": {
+        "userId": "usr-mv3ynunj"
+      }
+    },
     {
       "id": "notif-mv3ynunj",
       "type": "signup_request",
