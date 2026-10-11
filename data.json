@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:39:45.759Z",
+    "lastUpdated": "2026-10-11T15:40:20.312Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -108,6 +108,27 @@
       ],
       "phone": "+9647805195075",
       "createdAt": "2026-09-01T08:00:00.000Z"
+    },
+    {
+      "id": "usr-mv3zp4uv",
+      "username": "mbm",
+      "passwordPlain": "1234",
+      "passwordHash": "h_170842",
+      "fullName": "د. محمد باسم مجيد",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T15:40:20.311Z",
+          "lastActive": "2026-10-11T15:40:20.311Z"
+        }
+      ],
+      "phone": "07702223333",
+      "createdAt": "2026-10-11T15:40:20.311Z"
     }
   ],
   "items": [
@@ -704,6 +725,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3zp4uv",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: د. محمد باسم مجيد",
+      "message": "Staff د. محمد باسم مجيد (@mbm) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T15:40:20.311Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3zp4uv",
+        "username": "mbm"
+      }
+    },
     {
       "id": "notif-mv3zo4dv",
       "type": "signup_request",
