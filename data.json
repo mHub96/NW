@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:58:35.859Z",
+    "lastUpdated": "2026-10-11T16:00:03.814Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -304,10 +304,27 @@
             "amount": 1,
             "note": "Hello!"
           }
+        },
+        {
+          "id": "var-mv40ei1h-16tw",
+          "attributes": {
+            "Type of Shunt": "Flat Bottom Design",
+            "Pressure Gauge Level": "High Pressure (90 - 130 mmH2O)",
+            "Manufacturer": "Medtronic (Strata NSC)"
+          },
+          "quantity": 10,
+          "lowStockThreshold": 2,
+          "sku": "VPS-KIT-7",
+          "lastRefilled": {
+            "date": "2026-10-11T16:00:03.797Z",
+            "by": "as",
+            "amount": 10,
+            "note": ""
+          }
         }
       ],
       "createdAt": "2026-09-01T09:00:00.000Z",
-      "updatedAt": "2026-10-10T23:54:50.202Z"
+      "updatedAt": "2026-10-11T16:00:03.797Z"
     },
     {
       "id": "item-evd-02",
@@ -753,6 +770,25 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv40ei1h-yq3t",
+      "type": "refill",
+      "priority": "normal",
+      "title": "Stock Refilled: VP Shunt System",
+      "message": "احمد سالم البارون refilled VP Shunt System [Type of Shunt: Flat Bottom Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Medtronic (Strata NSC)] by +10 Kits. Available in storage for this specification: 10 Kits.",
+      "timestamp": "2026-10-11T16:00:03.797Z",
+      "targetRoles": null,
+      "targetUsers": null,
+      "readBy": [],
+      "metadata": {
+        "itemId": "item-vpshunt-01",
+        "itemName": "VP Shunt System",
+        "spec": "Type of Shunt: Flat Bottom Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Medtronic (Strata NSC)",
+        "amount": 10,
+        "newTotal": 10,
+        "refilledBy": "احمد سالم البارون"
+      }
+    },
     {
       "id": "notif-mv40ccei",
       "type": "user_approved",
