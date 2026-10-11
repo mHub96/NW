@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.4.0",
-    "lastUpdated": "2026-10-11T12:22:04.437Z",
+    "lastUpdated": "2026-10-11T12:22:04.935Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -895,7 +895,9 @@
       "title": "New Sign-up Request: C",
       "message": "Staff C (@c) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:21:12.241Z",
-      "readBy": [],
+      "readBy": [
+        "owner"
+      ],
       "metadata": {
         "userId": "usr-mv3sl1nz",
         "username": "c"
