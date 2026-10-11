@@ -129,6 +129,9 @@ class StorageEngine {
         console.warn("Initial GitHub fetch warning:", err);
       });
 
+    // Start background auto-sync polling and wake/visibility listeners
+    this.startAutoSync();
+
     return localData;
   }
 
@@ -302,7 +305,104 @@ class StorageEngine {
     }
     return { success: false, data: this.getLocalDatabase() };
   }
+
+  // Continuous background auto-sync loop & wake-up listeners
+  startAutoSync() {
+    if (this.syncTimer) clearInterval(this.syncTimer);
+    const interval = this.config.syncIntervalMs || 15000;
+    this.syncTimer = setInterval(() => {
+      this.syncIfActive();
+    }, interval);
+
+    // Immediate sync when tab becomes visible or window gains focus
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", () => this.forceSyncIfStale());
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          this.forceSyncIfStale();
+        }
+      });
+      window.addEventListener("online", () => this.forceSync());
+    }
+  }
+
+  async syncIfActive() {
+    if (this.isSyncing) return;
+    try {
+      await this.forceSync();
+    } catch (e) {
+      console.warn("Background auto-sync note:", e);
+    }
+  }
+
+  async forceSyncIfStale() {
+    const now = Date.now();
+    if (!this.lastSyncTime || (now - new Date(this.lastSyncTime).getTime() > 8000)) {
+      await this.forceSync();
+    }
+  }
+
+  // Trigger GitHub Actions CI runner to send W3C Web Push (Apple APNs & Google FCM)
+  async triggerCloudPushDispatch(notif) {
+    try {
+      const url = `${this.config.apiUrl}/repos/${this.config.user}/${this.config.repo}/dispatches`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          Accept: "application/vnd.github.v3+json",
+          "Content-Type": "application/json",
+          "User-Agent": "NeuroWare-App"
+        },
+        body: JSON.stringify({
+          event_type: "send_push_notification",
+          client_payload: { notif: notif }
+        })
+      });
+      if (res.ok) {
+        console.log("GitHub Actions Web Push dispatcher triggered successfully.");
+      }
+      return res.ok;
+    } catch (e) {
+      console.warn("GitHub Actions repository_dispatch note:", e);
+      return false;
+    }
+  }
+
+  // Broadcast instant real-time notification to hospital pager channel (ntfy.sh)
+  async broadcastToPushChannel(notif) {
+    try {
+      const server = window.NEURO_CONFIG?.PUSH_CHANNELS?.NTFY_SERVER || "https://ntfy.sh";
+      const topic = window.NEURO_CONFIG?.PUSH_CHANNELS?.DEFAULT_TOPIC || "neuroware-alerts-mhub96";
+      const priorityMap = {
+        urgent: "urgent",
+        warning: "high",
+        normal: "default",
+        low: "low"
+      };
+      const priority = priorityMap[notif.priority] || "high";
+
+      await fetch(`${server}/${topic}`, {
+        method: "POST",
+        headers: {
+          "Title": notif.title || "NeuroWare Alert",
+          "Priority": priority,
+          "Tags": notif.type === "signup_request" ? "busts_in_silhouette,hospital,warning" : "brain,hospital",
+          "Click": window.location.href.split('#')[0]
+        },
+        body: notif.message || "Neurosurgical inventory update"
+      });
+      console.log(`Notification broadcasted to hospital push channel (${topic}).`);
+    } catch (e) {
+      console.warn("Instant push channel broadcast note:", e);
+    }
+  }
 }
 
-window.StorageEngine = StorageEngine;
+if (typeof window !== "undefined") {
+  window.StorageEngine = StorageEngine;
+}
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = StorageEngine;
+}
 

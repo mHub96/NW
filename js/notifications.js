@@ -1,7 +1,10 @@
 /**
  * NeuroWare Notification System
- * In-app notification center, real-time toast alerts, badge management,
- * and synthesized iOS audio chime feedback
+ * Multi-layer Push Engine:
+ * 1. OS-level native Web Push via Service Worker (Apple APNs on iOS 16.4+ and Google FCM)
+ * 2. Instant zero-latency hospital push channel (ntfy.sh pub-sub & SSE)
+ * 3. Continuous background cloud synchronization & visibility wake
+ * 4. In-app synthesized iOS audio chime feedback & toast banners
  */
 
 class NotificationManager {
@@ -12,22 +15,24 @@ class NotificationManager {
     this.audioContext = null;
     this.soundEnabled = true;
 
-    // Track seen notification IDs to prevent duplicate alerts on initial page load
+    // Load persistently seen notification IDs to prevent repeat ringing on reload
     this.seenNotifIds = new Set();
-    const db = this.getDb();
-    if (db && Array.isArray(db.notifications)) {
-      db.notifications.forEach(n => this.seenNotifIds.add(n.id));
-    }
+    try {
+      const stored = localStorage.getItem("neuroware_seen_notif_ids");
+      if (stored) {
+        JSON.parse(stored).forEach(id => this.seenNotifIds.add(id));
+      }
+    } catch (e) {}
 
-    // 1. Listen for new local notifications (created by inventory actions/refills/low-stock)
+    // 1. Listen for new local notifications (created by inventory actions/refills/low-stock/auth)
     window.addEventListener("neuroware:new_notification", (e) => {
       if (e && e.detail) {
-        this.seenNotifIds.add(e.detail.id);
+        this.markIdAsSeen(e.detail.id);
         this.handleIncomingNotification(e.detail);
       }
     });
 
-    // 2. Listen for cloud database syncs (picked up by background polling)
+    // 2. Listen for cloud database syncs (picked up by background polling & visibility checks)
     window.addEventListener("neuroware:data_synced", (e) => {
       const cloudData = e.detail;
       if (cloudData && Array.isArray(cloudData.notifications)) {
@@ -35,24 +40,112 @@ class NotificationManager {
       }
     });
 
-    // Auto-check permission status
+    // 3. Connect to instant hospital pager SSE stream
+    this.connectInstantChannel();
+
+    // 4. Auto-check permission status & register Web Push if already granted
     this.checkPermissionStatus();
+    if (this.hasPermission()) {
+      this.subscribeToWebPush().catch(() => {});
+    }
+  }
+
+  markIdAsSeen(id) {
+    if (!id) return;
+    this.seenNotifIds.add(id);
+    try {
+      const arr = Array.from(this.seenNotifIds).slice(-200); // Retain last 200 IDs
+      localStorage.setItem("neuroware_seen_notif_ids", JSON.stringify(arr));
+    } catch (e) {}
+  }
+
+  // Connect to instant push channel (SSE) for real-time multi-device sync
+  connectInstantChannel() {
+    if (typeof EventSource === "undefined") return;
+    try {
+      const server = window.NEURO_CONFIG?.PUSH_CHANNELS?.NTFY_SERVER || "https://ntfy.sh";
+      const topic = window.NEURO_CONFIG?.PUSH_CHANNELS?.DEFAULT_TOPIC || "neuroware-alerts-mhub96";
+      const sseUrl = `${server}/${topic}/sse`;
+
+      const sse = new EventSource(sseUrl);
+      sse.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data && data.event === "message") {
+            // Immediately force a cloud sync to pick up the new records
+            if (window.NW?.storage) {
+              window.NW.storage.forceSync();
+            }
+          }
+        } catch (e) {}
+      };
+      this.instantChannelSse = sse;
+    } catch (e) {
+      console.warn("Could not connect to instant push channel SSE:", e);
+    }
+  }
+
+  // Check pending unseen notifications for current user (e.g. right after login or app launch)
+  checkPendingUnseenNotifications() {
+    const user = this.auth.getCurrentUser();
+    if (!user) return;
+    const db = this.getDb();
+    if (!db || !Array.isArray(db.notifications)) return;
+
+    const isAdmin = this.auth.isAdmin();
+    const now = Date.now();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+
+    for (const notif of db.notifications) {
+      if (this.seenNotifIds.has(notif.id)) continue;
+
+      const notifTime = new Date(notif.timestamp).getTime();
+      if (now - notifTime > twentyFourHours) {
+        this.markIdAsSeen(notif.id);
+        continue;
+      }
+
+      // Check role permissions
+      if (notif.type === "signup_request" && !isAdmin) {
+        continue;
+      }
+      if (notif.targetRoles && !notif.targetRoles.includes(user.role)) {
+        continue;
+      }
+      if (notif.targetUsers && !notif.targetUsers.includes(user.username)) {
+        continue;
+      }
+
+      const readBy = notif.readBy || [];
+      if (!readBy.includes(user.username)) {
+        this.markIdAsSeen(notif.id);
+        this.handleIncomingNotification(notif);
+      }
+    }
+    this.updateBadges();
   }
 
   handleCloudSyncedNotifications(notifications) {
     const currentUser = this.auth.getCurrentUser();
     if (!currentUser) return;
+    const isAdmin = this.auth.isAdmin();
 
     // Check newly synced notifications that arrived from other users / admins
     for (const notif of notifications) {
       if (!this.seenNotifIds.has(notif.id)) {
-        this.seenNotifIds.add(notif.id);
+        this.markIdAsSeen(notif.id);
+
+        if (notif.type === "signup_request" && !isAdmin) continue;
+        if (notif.targetRoles && !notif.targetRoles.includes(currentUser.role)) continue;
+        if (notif.targetUsers && !notif.targetUsers.includes(currentUser.username)) continue;
+
         const readBy = notif.readBy || [];
         if (!readBy.includes(currentUser.username)) {
           this.handleIncomingNotification(notif);
         }
       }
     }
+    this.updateBadges();
   }
 
   // Check if browser supports and has granted push notification permission
@@ -70,7 +163,7 @@ class NotificationManager {
     if (!("Notification" in window)) {
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
       if (isIOS) {
-        alert("On iPhone, push notifications require adding NeuroWare to your Home Screen.\n\nTap the Share icon (⬆️) in Safari, then tap 'Add to Home Screen'.");
+        alert("On iPhone, push notifications require adding NeuroWare to your Home Screen.\n\n1. Tap the Share icon (⬆️) in Safari\n2. Tap 'Add to Home Screen'\n3. Open NeuroWare from your Home Screen.");
       } else {
         alert("Push notifications are not supported in this browser.");
       }
@@ -80,6 +173,7 @@ class NotificationManager {
     try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
+        await this.subscribeToWebPush();
         await this.sendPushNotification({
           id: "push-perm-active-" + Date.now(),
           title: "🔔 Push Notifications Active",
@@ -93,6 +187,98 @@ class NotificationManager {
     } catch (err) {
       console.warn("Permission request error:", err);
       return false;
+    }
+  }
+
+  // Convert VAPID key to Uint8Array
+  urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  }
+
+  // Subscribe device to native W3C Web Push (Apple APNs / Google FCM)
+  async subscribeToWebPush() {
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+      return null;
+    }
+
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const vapidKey = window.NEURO_CONFIG?.VAPID_PUBLIC_KEY;
+      if (!vapidKey) return null;
+
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: this.urlBase64ToUint8Array(vapidKey)
+        });
+      }
+
+      if (sub) {
+        await this.registerPushSubscriptionOnServer(sub);
+      }
+      return sub;
+    } catch (e) {
+      console.warn("Web Push registration note:", e);
+      return null;
+    }
+  }
+
+  // Save device push subscription to cloud database (data.json)
+  async registerPushSubscriptionOnServer(sub) {
+    const currentUser = this.auth.getCurrentUser();
+    if (!currentUser) return;
+    const db = this.getDb();
+    if (!db) return;
+    if (!db.pushSubscriptions) db.pushSubscriptions = [];
+
+    const subJson = sub.toJSON();
+    const endpoint = subJson.endpoint;
+    const p256dh = subJson.keys?.p256dh;
+    const auth = subJson.keys?.auth;
+
+    if (!endpoint || !p256dh || !auth) return;
+
+    const existingIdx = db.pushSubscriptions.findIndex(s => s.endpoint === endpoint);
+    const subRecord = {
+      endpoint: endpoint,
+      keys: { p256dh, auth },
+      username: currentUser.username,
+      role: currentUser.role,
+      deviceId: this.auth.storage?.getDeviceId() || "unknown",
+      platform: navigator.platform || "mobile",
+      updatedAt: new Date().toISOString()
+    };
+
+    if (existingIdx >= 0) {
+      db.pushSubscriptions[existingIdx] = subRecord;
+    } else {
+      db.pushSubscriptions.push(subRecord);
+    }
+
+    await this.saveDb(db, `Register push device for @${currentUser.username}`);
+  }
+
+  // Broadcast push notifications to external devices (instant hospital pager + GitHub Actions Web Push)
+  async broadcastPushNotification(notif) {
+    const storage = window.NW?.storage || this.auth?.storage;
+    if (!storage) return;
+
+    // 1. Instant hospital push channel (ntfy.sh pub-sub)
+    if (typeof storage.broadcastToPushChannel === "function") {
+      storage.broadcastToPushChannel(notif).catch(() => {});
+    }
+
+    // 2. Trigger GitHub Actions CI runner (delivers Apple APNs and Google FCM Web Push to sleeping phones)
+    if (typeof storage.triggerCloudPushDispatch === "function") {
+      storage.triggerCloudPushDispatch(notif).catch(() => {});
     }
   }
 
@@ -171,12 +357,19 @@ class NotificationManager {
       }
     }
 
-    await this.sendPushNotification({
+    const testNotif = {
       id: "test-push-" + Date.now(),
-      title: "🧠 NeuroWare Push Alert",
-      message: "OS Push notification delivered successfully! You will receive live shift and inventory updates on this phone.",
-      priority: "normal"
-    });
+      title: "🧠 NeuroWare Phone Alert",
+      message: "Test push notification delivered successfully! Live shift, refill, and registration updates will ring on this phone.",
+      priority: "normal",
+      type: "system"
+    };
+
+    // 1. Deliver local alert
+    await this.sendPushNotification(testNotif);
+
+    // 2. Broadcast test alert across cloud channels
+    await this.broadcastPushNotification(testNotif);
   }
 
   handleIncomingNotification(notif) {
@@ -185,6 +378,7 @@ class NotificationManager {
     this.updateBadges();
     this.sendPushNotification(notif);
   }
+
   playChime(type = "normal") {
     if (!this.soundEnabled) return;
     try {
@@ -372,5 +566,9 @@ class NotificationManager {
   }
 }
 
-window.NotificationManager = NotificationManager;
-
+if (typeof window !== "undefined") {
+  window.NotificationManager = NotificationManager;
+}
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = NotificationManager;
+}

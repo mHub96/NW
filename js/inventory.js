@@ -950,11 +950,16 @@ class InventoryManager {
       title: notifData.title,
       message: notifData.message,
       timestamp: new Date().toISOString(),
+      targetRoles: notifData.targetRoles || null,
+      targetUsers: notifData.targetUsers || null,
       readBy: [],
       metadata: notifData.metadata || {}
     };
     db.notifications.unshift(notif);
     window.dispatchEvent(new CustomEvent("neuroware:new_notification", { detail: notif }));
+    if (window.NW?.notifications) {
+      window.NW.notifications.broadcastPushNotification(notif);
+    }
   }
 
   getUsageLogs(filters = {}) {

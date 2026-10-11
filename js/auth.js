@@ -196,6 +196,7 @@ class AuthManager {
       title: "New Sign-up Request: " + newUser.fullName,
       message: `Staff ${newUser.fullName} (@${newUser.username}) requested registration. Needs approval and device limit review.`,
       timestamp: new Date().toISOString(),
+      targetRoles: [window.NEURO_CONFIG.ROLES.OWNER, window.NEURO_CONFIG.ROLES.ADMIN],
       readBy: [],
       metadata: {
         userId: newUser.id,
@@ -205,6 +206,12 @@ class AuthManager {
     db.notifications.unshift(notif);
 
     await this.saveDb(db, `New registration request: @${newUser.username}`);
+
+    // Immediately dispatch local event and broadcast cloud push to admins/owner
+    window.dispatchEvent(new CustomEvent("neuroware:new_notification", { detail: notif }));
+    if (window.NW?.notifications) {
+      window.NW.notifications.broadcastPushNotification(notif);
+    }
     return newUser;
   }
 
@@ -225,12 +232,18 @@ class AuthManager {
       title: "User Approved: " + user.fullName,
       message: `${user.fullName} (@${user.username}) was approved as ${user.role} with ${user.deviceLimit === 'unlimited' ? 'unlimited devices' : user.deviceLimit + ' device limit'} by ${this.currentUser.fullName}.`,
       timestamp: new Date().toISOString(),
+      targetUsers: [user.username],
       readBy: [this.currentUser.username],
       metadata: { userId: user.id }
     };
     db.notifications.unshift(notif);
 
     await this.saveDb(db, `Approved user: @${user.username} as ${user.role}`);
+
+    window.dispatchEvent(new CustomEvent("neuroware:new_notification", { detail: notif }));
+    if (window.NW?.notifications) {
+      window.NW.notifications.broadcastPushNotification(notif);
+    }
     return user;
   }
 

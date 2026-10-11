@@ -1,0 +1,12 @@
+{
+  "name": "neuroware",
+  "version": "2.5.0",
+  "description": "Neurosurgical Inventory and Operative Log System",
+  "private": true,
+  "scripts": {
+    "send-push": "node scripts/send-push.js"
+  },
+  "dependencies": {
+    "web-push": "^3.6.7"
+  }
+}

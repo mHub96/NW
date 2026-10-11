@@ -96,6 +96,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupTabBarForRole(user.role);
       renderCurrentView();
       notifications.updateBadges();
+      notifications.checkPendingUnseenNotifications();
+      if ("Notification" in window && Notification.permission === "granted") {
+        notifications.subscribeToWebPush().catch(() => {});
+      }
       checkAndPromptNotificationPermission();
     }
   }
@@ -137,6 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         document.getElementById("btnAllowPushFromCard")?.addEventListener("click", async () => {
           card.remove();
           await notifications.requestPermission();
+          notifications.checkPendingUnseenNotifications();
         });
 
         document.getElementById("btnDismissPushCard")?.addEventListener("click", () => {
@@ -2931,23 +2936,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       <!-- Push Notifications Card -->
       <div class="ios-card">
         <div class="ios-section-header">
-          <span class="ios-section-title">Push Notifications</span>
+          <span class="ios-section-title">Push Notifications & Phone Alerts</span>
           <span class="stock-badge ${notifications.hasPermission() ? 'healthy' : 'low'}" id="settingsPushStatusBadge">
-            ${notifications.hasPermission() ? '🟢 Active (OS Push)' : '⚠️ Needs Permission'}
+            ${notifications.hasPermission() ? '🟢 Active (OS & Cloud Push)' : '⚠️ Needs Permission'}
           </span>
         </div>
 
         <div style="font-size:12.5px;color:var(--ios-text-secondary);margin-bottom:12px;line-height:1.45;">
-          Get native OS push notifications for shifts, stock refills, and low-stock alarms even when NeuroWare is closed or running in the background.
+          Get active real-time push alerts on your phone for user sign-ups, inventory refills, and low-stock alarms even when NeuroWare is closed or in your pocket.
         </div>
 
-        <div style="display:flex;gap:8px;">
-          <button type="button" id="btnEnablePushPerm" class="ios-btn ios-btn-primary ios-btn-sm" style="flex:1.2;">
-            🔔 Enable Push
-          </button>
-          <button type="button" id="btnTestPushAlert" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
-            🧪 Test Notification
-          </button>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;">
+          <div style="display:flex;gap:8px;">
+            <button type="button" id="btnEnablePushPerm" class="ios-btn ios-btn-primary ios-btn-sm" style="flex:1.2;">
+              🔔 Enable Phone Push
+            </button>
+            <button type="button" id="btnTestPushAlert" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;">
+              🧪 Test Alert
+            </button>
+          </div>
+
+          <a href="https://ntfy.sh/neuroware-alerts-mhub96" target="_blank" rel="noopener noreferrer" class="ios-btn ios-btn-secondary ios-btn-sm" style="width:100%;text-decoration:none;justify-content:center;background:rgba(0,122,255,0.08);border-color:rgba(0,122,255,0.3);text-align:center;">
+            📱 Subscribe to Hospital Pager (Instant iPhone Lock Screen)
+          </a>
+        </div>
+
+        <div style="padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:10px;font-size:11.5px;color:var(--ios-text-secondary);line-height:1.4;">
+          💡 <strong>iPhone Tips:</strong> Add NeuroWare to your Home Screen from Safari (Share ➔ Add to Home Screen) to receive native lock-screen notifications. You can also tap <em>Subscribe to Hospital Pager</em> above for instant pager alerts.
         </div>
       </div>
 
@@ -3259,9 +3274,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
             await auth.login(u, p);
             checkAuthAndRender();
-            if ("Notification" in window && Notification.permission === "default") {
-              notifications.requestPermission().catch(() => {});
+            if ("Notification" in window) {
+              if (Notification.permission === "default") {
+                notifications.requestPermission().catch(() => {});
+              } else if (Notification.permission === "granted") {
+                notifications.subscribeToWebPush().catch(() => {});
+              }
             }
+            notifications.checkPendingUnseenNotifications();
           } catch (err) {
             alert(err.message);
             btn.disabled = false;

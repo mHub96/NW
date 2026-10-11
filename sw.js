@@ -4,7 +4,7 @@
  * Resilient Offline Storage, OS Push Notifications & Auto-Updating Engine
  */
 
-const CACHE_NAME = 'neuroware-v2.4';
+const CACHE_NAME = 'neuroware-v2.5';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -88,7 +88,13 @@ self.addEventListener('push', (event) => {
     }
   };
 
-  event.waitUntil(self.registration.showNotification(title, options));
+  event.waitUntil(
+    self.registration.showNotification(title, options).catch(() => {
+      delete options.icon;
+      delete options.badge;
+      return self.registration.showNotification(title, options);
+    })
+  );
 });
 
 // --- Message Handler (Allow foreground/background clients to post notification requests) ---
