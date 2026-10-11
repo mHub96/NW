@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:15:13.839Z",
+    "lastUpdated": "2026-10-11T15:15:16.576Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -108,28 +108,6 @@
       ],
       "phone": "+9647805195075",
       "createdAt": "2026-09-01T08:00:00.000Z"
-    },
-    {
-      "id": "usr-mv3y9ox3",
-      "username": "س",
-      "passwordPlain": "س",
-      "passwordHash": "h_633",
-      "fullName": "س",
-      "role": "REGULAR",
-      "status": "rejected",
-      "deviceLimit": 1,
-      "registeredDevices": [
-        {
-          "id": "dev-88i5qzw-mv2zawci",
-          "name": "Windows PC (Desktop)",
-          "platform": "Win32",
-          "registeredAt": "2026-10-11T15:00:20.199Z",
-          "lastActive": "2026-10-11T15:00:20.199Z"
-        }
-      ],
-      "phone": "2",
-      "createdAt": "2026-10-11T15:00:20.199Z",
-      "rejectReason": "Rejected by administration"
     },
     {
       "id": "usr-mv3ygv94",
