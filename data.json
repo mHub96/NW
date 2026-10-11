@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:56:34.127Z",
+    "lastUpdated": "2026-10-11T15:56:37.902Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -136,27 +136,6 @@
       ],
       "phone": "",
       "createdAt": "2026-10-11T15:40:20.311Z"
-    },
-    {
-      "id": "usr-mv409gkj",
-      "username": "s23",
-      "passwordPlain": "23",
-      "passwordHash": "h_641",
-      "fullName": "S23",
-      "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
-      "registeredDevices": [
-        {
-          "id": "dev-7fg1vg4-mv3umy52",
-          "name": "Android Mobile",
-          "platform": "Linux armv81",
-          "registeredAt": "2026-10-11T15:56:08.611Z",
-          "lastActive": "2026-10-11T15:56:08.611Z"
-        }
-      ],
-      "phone": "",
-      "createdAt": "2026-10-11T15:56:08.611Z"
     }
   ],
   "items": [
@@ -764,7 +743,9 @@
         "OWNER",
         "ADMIN"
       ],
-      "readBy": [],
+      "readBy": [
+        "mrj"
+      ],
       "metadata": {
         "userId": "usr-mv409gkj",
         "username": "s23"
@@ -1285,7 +1266,7 @@
       "role": "OWNER",
       "deviceId": "dev-uronqbh-mv406ldx",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T15:56:33.466Z"
+      "updatedAt": "2026-10-11T15:55:37.095Z"
     }
   ]
 }
