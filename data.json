@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T13:20:09.038Z",
+    "lastUpdated": "2026-10-11T13:20:57.796Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -1101,7 +1101,7 @@
       "role": "OWNER",
       "deviceId": "dev-w9d20x9-mv2ywklv",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T13:20:09.037Z"
+      "updatedAt": "2026-10-11T13:20:56.834Z"
     }
   ]
 }
