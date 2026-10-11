@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T16:15:19.260Z",
+    "lastUpdated": "2026-10-11T17:19:42.772Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -76,10 +76,10 @@
   "users": [
     {
       "id": "usr-owner-01",
-      "username": "mrj",
-      "passwordHash": "h_2cd4585",
-      "passwordPlain": "1996*",
-      "fullName": "د  محمد رياض جعفر",
+      "username": "owner",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Owner2026!",
+      "fullName": "Dr. Haidar (Chief Neurosurgeon / Storage Director)",
       "role": "OWNER",
       "status": "approved",
       "deviceLimit": "unlimited",
@@ -97,66 +97,289 @@
           "platform": "Linux armv81",
           "registeredAt": "2026-10-10T22:32:27.765Z",
           "lastActive": "2026-10-10T23:32:12.656Z"
-        },
-        {
-          "id": "dev-jp4bdcj-mv3yc9sx",
-          "name": "Android Mobile",
-          "platform": "Linux armv81",
-          "registeredAt": "2026-10-11T15:02:36.798Z",
-          "lastActive": "2026-10-11T15:15:49.886Z"
-        },
-        {
-          "id": "dev-uronqbh-mv406ldx",
-          "name": "Android Mobile",
-          "platform": "Linux armv81",
-          "registeredAt": "2026-10-11T15:54:23.964Z",
-          "lastActive": "2026-10-11T15:54:23.964Z"
         }
       ],
-      "phone": "+9647805195075",
+      "phone": "+9647800000001",
       "createdAt": "2026-09-01T08:00:00.000Z"
     },
     {
-      "id": "usr-mv3zp4uv",
-      "username": "mbm",
-      "passwordPlain": "1234",
-      "passwordHash": "h_170842",
-      "fullName": "د. محمد باسم مجيد",
-      "role": "REGULAR",
+      "id": "usr-admin-01",
+      "username": "admin",
+      "passwordHash": "4c424fa7520e7f7b3a95be7a01d51a66ff5596e19198305b3ffca93d6a7aa8f2",
+      "passwordPlain": "Admin2026!",
+      "fullName": "Dr. Ahmed (Neurosurgery OR Manager)",
+      "role": "ADMIN",
       "status": "approved",
-      "deviceLimit": "1",
+      "deviceLimit": "unlimited",
       "registeredDevices": [
         {
           "id": "dev-88i5qzw-mv2zawci",
           "name": "Windows PC (Desktop)",
           "platform": "Win32",
-          "registeredAt": "2026-10-11T15:40:20.311Z",
-          "lastActive": "2026-10-11T15:40:20.311Z"
+          "registeredAt": "2026-10-10T22:41:57.608Z",
+          "lastActive": "2026-10-10T22:41:57.608Z"
         }
       ],
-      "phone": "",
-      "createdAt": "2026-10-11T15:40:20.311Z"
+      "phone": "+9647804080071",
+      "createdAt": "2026-09-02T09:00:00.000Z"
     },
     {
-      "id": "usr-mv40bnyi",
-      "username": "as",
+      "id": "usr-reg-01",
+      "username": "dr_kareem",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Kareem2026!",
+      "fullName": "د. احمد كريم (Neurosurgeon)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-6hhjv60-mv2yg8gz",
+          "name": "Apple iPhone (iOS Safari)",
+          "platform": "iPhone",
+          "registeredAt": "2026-10-10T22:17:40.752Z",
+          "lastActive": "2026-10-10T22:17:40.752Z"
+        }
+      ],
+      "phone": "+9647739862206",
+      "createdAt": "2026-09-10T11:00:00.000Z"
+    },
+    {
+      "id": "usr-reg-02",
+      "username": "dr_anwar",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Anwar2026!",
+      "fullName": "د. انور ماجد (Neurosurgeon)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 2,
+      "registeredDevices": [],
+      "phone": "+9647758674695",
+      "createdAt": "2026-09-15T14:30:00.000Z"
+    },
+    {
+      "id": "usr-reg-03",
+      "username": "resident_ali",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Resident2026!",
+      "fullName": "Dr. Ali M. (Neurosurgery Resident)",
+      "role": "REGULAR",
+      "status": "approved",
+      "deviceLimit": 1,
+      "registeredDevices": [],
+      "phone": "+9647720000000",
+      "createdAt": "2026-10-01T10:00:00.000Z"
+    },
+    {
+      "id": "usr-pending-01",
+      "username": "dr_sarah",
+      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
+      "passwordPlain": "Sarah2026!",
+      "fullName": "Dr. Sarah Al-Bayati (Neurosurgery Specialist)",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [],
+      "phone": "+9647701112233",
+      "createdAt": "2026-10-10T19:40:00.000Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv2yydsa",
+      "username": "rafid",
       "passwordPlain": "1234",
       "passwordHash": "h_170842",
-      "fullName": "احمد سالم البارون",
-      "role": "ADMIN",
+      "fullName": "Dr. Rafid Khalid",
+      "role": "REGULAR",
       "status": "approved",
       "deviceLimit": "1",
+      "registeredDevices": [
+        {
+          "id": "dev-w9d20x9-mv2ywklv",
+          "name": "Linux Workstation",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-10T22:31:45.994Z",
+          "lastActive": "2026-10-10T22:39:13.317Z"
+        }
+      ],
+      "phone": "07801112222",
+      "createdAt": "2026-10-10T22:31:45.994Z"
+    },
+    {
+      "id": "usr-mv315pgz",
+      "username": "falah",
+      "passwordPlain": "123",
+      "passwordHash": "h_be32",
+      "fullName": "Falah",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-10T23:33:26.963Z",
+          "lastActive": "2026-10-10T23:33:26.963Z"
+        }
+      ],
+      "phone": "98789998888",
+      "createdAt": "2026-10-10T23:33:26.963Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv322tc1",
+      "username": "حسن",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "حسن مرزوق",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-10T23:59:11.617Z",
+          "lastActive": "2026-10-10T23:59:11.617Z"
+        }
+      ],
+      "phone": "07801112222",
+      "createdAt": "2026-10-10T23:59:11.617Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3sj52q",
+      "username": "con",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "Conrad",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-uhjdrmd-mv3sikk5",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T12:19:43.347Z",
+          "lastActive": "2026-10-11T12:19:43.347Z"
+        }
+      ],
+      "phone": "07805556666",
+      "createdAt": "2026-10-11T12:19:43.348Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3sl1nz",
+      "username": "c",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "C",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-uhjdrmd-mv3sikk5",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T12:21:12.241Z",
+          "lastActive": "2026-10-11T12:21:12.241Z"
+        }
+      ],
+      "phone": "09876576456",
+      "createdAt": "2026-10-11T12:21:12.241Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3uncby",
+      "username": "a",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "A",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
       "registeredDevices": [
         {
           "id": "dev-7fg1vg4-mv3umy52",
           "name": "Android Mobile",
           "platform": "Linux armv81",
-          "registeredAt": "2026-10-11T15:57:51.498Z",
-          "lastActive": "2026-10-11T15:58:35.858Z"
+          "registeredAt": "2026-10-11T13:18:58.606Z",
+          "lastActive": "2026-10-11T13:18:58.606Z"
+        }
+      ],
+      "phone": "07805195075",
+      "createdAt": "2026-10-11T13:18:58.606Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3usj68",
+      "username": "j",
+      "passwordPlain": "j",
+      "passwordHash": "h_6a",
+      "fullName": "J",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-7fg1vg4-mv3umy52",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T13:23:00.752Z",
+          "lastActive": "2026-10-11T13:23:00.752Z"
         }
       ],
       "phone": "",
-      "createdAt": "2026-10-11T15:57:51.498Z"
+      "createdAt": "2026-10-11T13:23:00.752Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3y6eqi",
+      "username": "محمد",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "محمد رياض",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T14:57:47.034Z",
+          "lastActive": "2026-10-11T14:57:47.034Z"
+        }
+      ],
+      "phone": "0805195075",
+      "createdAt": "2026-10-11T14:57:47.034Z",
+      "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3y766o",
+      "username": "ي",
+      "passwordPlain": "ي",
+      "passwordHash": "h_64a",
+      "fullName": "ي",
+      "role": "REGULAR",
+      "status": "rejected",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T14:58:22.608Z",
+          "lastActive": "2026-10-11T14:58:22.608Z"
+        }
+      ],
+      "phone": "1",
+      "createdAt": "2026-10-11T14:58:22.608Z",
+      "rejectReason": "Rejected by administration"
     }
   ],
   "items": [
@@ -304,27 +527,10 @@
             "amount": 1,
             "note": "Hello!"
           }
-        },
-        {
-          "id": "var-mv40ei1h-16tw",
-          "attributes": {
-            "Type of Shunt": "Flat Bottom Design",
-            "Pressure Gauge Level": "High Pressure (90 - 130 mmH2O)",
-            "Manufacturer": "Medtronic (Strata NSC)"
-          },
-          "quantity": 10,
-          "lowStockThreshold": 2,
-          "sku": "VPS-KIT-7",
-          "lastRefilled": {
-            "date": "2026-10-11T16:00:03.797Z",
-            "by": "as",
-            "amount": 10,
-            "note": ""
-          }
         }
       ],
       "createdAt": "2026-09-01T09:00:00.000Z",
-      "updatedAt": "2026-10-11T16:00:03.797Z"
+      "updatedAt": "2026-10-10T23:54:50.202Z"
     },
     {
       "id": "item-evd-02",
@@ -771,303 +977,6 @@
   ],
   "notifications": [
     {
-      "id": "notif-mv40ei1h-yq3t",
-      "type": "refill",
-      "priority": "normal",
-      "title": "Stock Refilled: VP Shunt System",
-      "message": "احمد سالم البارون refilled VP Shunt System [Type of Shunt: Flat Bottom Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Medtronic (Strata NSC)] by +10 Kits. Available in storage for this specification: 10 Kits.",
-      "timestamp": "2026-10-11T16:00:03.797Z",
-      "targetRoles": null,
-      "targetUsers": null,
-      "readBy": [
-        "mrj"
-      ],
-      "metadata": {
-        "itemId": "item-vpshunt-01",
-        "itemName": "VP Shunt System",
-        "spec": "Type of Shunt: Flat Bottom Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Medtronic (Strata NSC)",
-        "amount": 10,
-        "newTotal": 10,
-        "refilledBy": "احمد سالم البارون"
-      }
-    },
-    {
-      "id": "notif-mv40ccei",
-      "type": "user_approved",
-      "priority": "normal",
-      "title": "User Approved: احمد سالم البارون",
-      "message": "احمد سالم البارون (@as) was approved as ADMIN with 1 device limit by د  محمد رياض جعفر.",
-      "timestamp": "2026-10-11T15:58:23.178Z",
-      "targetUsers": [
-        "as"
-      ],
-      "readBy": [
-        "mrj"
-      ],
-      "metadata": {
-        "userId": "usr-mv40bnyi"
-      }
-    },
-    {
-      "id": "notif-mv40bnyi",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: احمد سالم البارون",
-      "message": "Staff احمد سالم البارون (@as) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:57:51.498Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "mrj"
-      ],
-      "metadata": {
-        "userId": "usr-mv40bnyi",
-        "username": "as"
-      }
-    },
-    {
-      "id": "notif-mv40af6l",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: G",
-      "message": "Staff G (@g) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:56:53.469Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "mrj"
-      ],
-      "metadata": {
-        "userId": "usr-mv40af6l",
-        "username": "g"
-      }
-    },
-    {
-      "id": "notif-mv409gkj",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: S23",
-      "message": "Staff S23 (@s23) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:56:08.612Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "mrj"
-      ],
-      "metadata": {
-        "userId": "usr-mv409gkj",
-        "username": "s23"
-      }
-    },
-    {
-      "id": "notif-mv3zpd3i",
-      "type": "user_approved",
-      "priority": "normal",
-      "title": "User Approved: د. محمد باسم مجيد",
-      "message": "د. محمد باسم مجيد (@mbm) was approved as REGULAR with 1 device limit by د  محمد رياض جعفر.",
-      "timestamp": "2026-10-11T15:40:30.990Z",
-      "targetUsers": [
-        "mbm"
-      ],
-      "readBy": [
-        "mrj",
-        "owner"
-      ],
-      "metadata": {
-        "userId": "usr-mv3zp4uv"
-      }
-    },
-    {
-      "id": "notif-mv3zp4uv",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: د. محمد باسم مجيد",
-      "message": "Staff د. محمد باسم مجيد (@mbm) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:40:20.311Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "mrj",
-        "owner"
-      ],
-      "metadata": {
-        "userId": "usr-mv3zp4uv",
-        "username": "mbm"
-      }
-    },
-    {
-      "id": "notif-mv3zo4dv",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: شسي",
-      "message": "Staff شسي (@شسي) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:39:33.043Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "mrj",
-        "owner"
-      ],
-      "metadata": {
-        "userId": "usr-mv3zo4dv",
-        "username": "شسي"
-      }
-    },
-    {
-      "id": "notif-mv3yuw3d",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: asd",
-      "message": "Staff asd (@asd) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:16:49.273Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj"
-      ],
-      "metadata": {
-        "userId": "usr-mv3yuw3d",
-        "username": "asd"
-      }
-    },
-    {
-      "id": "notif-mv3yosfr",
-      "type": "user_approved",
-      "priority": "normal",
-      "title": "User Approved: د. محمد رياض",
-      "message": "د. محمد رياض (@mrj) was approved as OWNER with unlimited devices by Dr. Haidar (Chief Neurosurgeon / Storage Director).",
-      "timestamp": "2026-10-11T15:12:04.599Z",
-      "targetUsers": [
-        "mrj"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3ynunj"
-      }
-    },
-    {
-      "id": "notif-mv3ynunj",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: د. محمد رياض",
-      "message": "Staff د. محمد رياض (@mrj) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:11:20.815Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3ynunj",
-        "username": "mrj"
-      }
-    },
-    {
-      "id": "notif-mv3ymfsl",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: asd3",
-      "message": "Staff asd3 (@asd2) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:10:14.901Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3ymfsl",
-        "username": "asd2"
-      }
-    },
-    {
-      "id": "notif-mv3yliuq",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: asd",
-      "message": "Staff asd (@asd) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:09:32.210Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3yliuq",
-        "username": "asd"
-      }
-    },
-    {
-      "id": "notif-mv3ygv94",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: s",
-      "message": "Staff s (@s) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:05:55.000Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3ygv94",
-        "username": "s"
-      }
-    },
-    {
-      "id": "notif-mv3y9ox3",
-      "type": "signup_request",
-      "priority": "warning",
-      "title": "New Sign-up Request: س",
-      "message": "Staff س (@س) requested registration. Needs approval and device limit review.",
-      "timestamp": "2026-10-11T15:00:20.199Z",
-      "targetRoles": [
-        "OWNER",
-        "ADMIN"
-      ],
-      "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
-      ],
-      "metadata": {
-        "userId": "usr-mv3y9ox3",
-        "username": "س"
-      }
-    },
-    {
       "id": "notif-mv3y766o",
       "type": "signup_request",
       "priority": "warning",
@@ -1079,9 +988,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3y766o",
@@ -1100,9 +1007,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3y6eqi",
@@ -1121,9 +1026,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3usj68",
@@ -1142,9 +1045,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3uncby",
@@ -1159,9 +1060,7 @@
       "message": "Staff C (@c) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:21:12.241Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3sl1nz",
@@ -1176,9 +1075,7 @@
       "message": "Staff Conrad (@con) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:19:43.348Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3sj52q",
@@ -1193,9 +1090,7 @@
       "message": "Staff حسن مرزوق (@حسن) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:59:11.617Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv322tc1",
@@ -1210,9 +1105,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 1 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:54:50.202Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1229,9 +1122,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 1 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:50:13.199Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1248,9 +1139,7 @@
       "message": "Staff Falah (@falah) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:33:26.963Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv315pgz",
@@ -1265,9 +1154,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 2 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:06:48.063Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1284,9 +1171,7 @@
       "message": "Dr. Haidar (Chief Neurosurgeon / Storage Director) refilled VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Low Pressure (10 - 50 mmH2O), Manufacturer: B. Braun (Miethke proGAV)] by +1 Kits. Available for this specification: 1 Kits. (Note: Hello!)",
       "timestamp": "2026-10-10T23:05:08.631Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {
         "itemId": "item-vpshunt-01",
@@ -1305,9 +1190,7 @@
       "message": "Operative storage active with separate spec-level stock tracking and hardware device security.",
       "timestamp": "2026-10-11T01:50:00.000Z",
       "readBy": [
-        "owner",
-        "mrj",
-        "mrja"
+        "owner"
       ],
       "metadata": {}
     }
@@ -1344,43 +1227,7 @@
       "role": "OWNER",
       "deviceId": "dev-w9d20x9-mv2ywklv",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T13:21:21.869Z"
-    },
-    {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/c_yeSXNnShY:APA91bFjM__9JjXRGBnb0vQi0FEU4laao-8ikw6INd35gQlwR0rmXMqEiJH859KDI0aQxPcW7jTmUd1_1jNI_So0WIn4Lo0Mspcy4FZX9rjV6jBxcwCiLlhWa3DN98nuZ0abmyY8Enig",
-      "keys": {
-        "p256dh": "BN-0R-T7oGhCRwtlPA7bRow74S5q6gB_At4QAT7YrwWKCQOef5t5TsQhNzgq66ygcu06iIBRmO_KqctDfx-928A",
-        "auth": "3AW-GYxuUEKfPfOg63NCZw"
-      },
-      "username": "owner",
-      "role": "OWNER",
-      "deviceId": "dev-jp4bdcj-mv3yc9sx",
-      "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T15:05:35.498Z"
-    },
-    {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/dqmCOXBsgOw:APA91bFz3QMuE4STTLr_99wQEjwqpLU2SGrBIPX1aoE4W712YVx7Ke59ffjKmqGAdZn5Q1uv2M44YlyPUN6IBHymFW5vwcx9zRUr1FSWdkGG1-kfAZBGhgFwH-AjYjQe-1eTGSz9MHz7",
-      "keys": {
-        "p256dh": "BGC9dwzGoqLJrv0rwEEXWRqWciKpxa4UerTbC0qWP3mOuDSN3cqMfuiTvZcdqERsWiWZYXWbanJgheuvPLPghdQ",
-        "auth": "n774xnPvSYNOph_oUOEfYQ"
-      },
-      "username": "mrj",
-      "role": "OWNER",
-      "deviceId": "dev-jp4bdcj-mv3yc9sx",
-      "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T15:53:05.334Z"
-    },
-    {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/fLUoh9xcc3U:APA91bFfyzk0gSQYhGsdCvWyWi2YYnk5IMzzo-8UUkMNqOc0f1etKg3pmikT7rgriYuFq1l4m1B2D2721zAR7PpvolttXEebn140RIkQ_437XFVSRyzdDLrvEIupOVP2g5xmbJK0aUXj",
-      "keys": {
-        "p256dh": "BDOUbjMtJxzkcX22qWmPXmhXG1U154FU6CFlArG7eT2Z-BQ8z4dt0iewtCf8pJkjzsT90UxsK7oO9qg7Cs_IZ4A",
-        "auth": "abPoUyaaRxTtDC5GNWIfKA"
-      },
-      "username": "mrj",
-      "role": "OWNER",
-      "deviceId": "dev-uronqbh-mv406ldx",
-      "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T16:15:18.597Z"
+      "updatedAt": "2026-10-11T17:19:41.204Z"
     }
   ]
 }
