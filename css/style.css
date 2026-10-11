@@ -287,6 +287,7 @@ html, body {
 
 /* iOS Status Bar */
 .ios-status-bar {
+  flex-shrink: 0;
   width: 100%;
   height: 48px;
   padding: 12px 24px 0 24px;
@@ -296,7 +297,7 @@ html, body {
   font-size: 13.5px;
   font-weight: 600;
   color: var(--ios-text-primary);
-  z-index: 900;
+  z-index: 950;
   user-select: none;
 }
 
@@ -312,8 +313,9 @@ html, body {
   fill: currentColor;
 }
 
-/* iOS Navigation Header Bar */
+/* iOS Navigation Header Bar (Fixed & Always Visible at Top) */
 .ios-nav-header {
+  flex-shrink: 0;
   height: 52px;
   padding: 0 16px;
   display: flex;
@@ -323,9 +325,8 @@ html, body {
   backdrop-filter: var(--ios-blur);
   -webkit-backdrop-filter: var(--ios-blur);
   border-bottom: 0.5px solid var(--ios-separator);
-  z-index: 800;
-  position: sticky;
-  top: 0;
+  z-index: 950;
+  position: relative;
 }
 
 .nav-title-group {
@@ -402,12 +403,13 @@ html, body {
   border: 1.5px solid var(--ios-bg);
 }
 
-/* App Main Content Area */
+/* App Main Content Area (Scrollable between fixed top & bottom bars) */
 .app-screen-body {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 16px 16px 90px 16px;
+  padding: 16px 16px 20px 16px;
   background-color: var(--ios-bg);
   position: relative;
   -webkit-overflow-scrolling: touch;
@@ -422,14 +424,14 @@ html, body {
   border-radius: 4px;
 }
 
-/* iOS Bottom Tab Bar */
+/* iOS Bottom Tab Bar (Fixed & Always Visible at Bottom) */
 .ios-tab-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 74px;
-  padding: 6px 12px 20px 12px;
+  flex-shrink: 0;
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 60px;
+  padding: 6px 12px calc(8px + env(safe-area-inset-bottom, 0px)) 12px;
   background: var(--ios-glass-bg);
   backdrop-filter: var(--ios-blur);
   -webkit-backdrop-filter: var(--ios-blur);
@@ -437,7 +439,7 @@ html, body {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  z-index: 850;
+  z-index: 950;
   user-select: none;
 }
 
@@ -480,19 +482,9 @@ html, body {
   stroke-width: 2.2px;
 }
 
-/* Home Indicator Bar */
+/* Home Indicator Bar (Permanently Removed to prevent double handles on iPhone) */
 .ios-home-indicator {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 135px;
-  height: 4.5px;
-  background: var(--ios-text-primary);
-  opacity: 0.28;
-  border-radius: 10px;
-  pointer-events: none;
-  z-index: 999;
+  display: none !important;
 }
 
 /* ==========================================================================
@@ -1261,30 +1253,69 @@ html, body {
   to { transform: translateY(0); opacity: 1; }
 }
 
-/* Mobile full-bleed responsiveness */
+/* Mobile full-bleed responsiveness (Fixed Top & Bottom Bars, Scrollable Body) */
 @media (max-width: 600px) {
-  .app-viewport-wrapper {
+  html, body {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    margin: 0;
     padding: 0;
+  }
+  .app-viewport-wrapper {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    padding: 0;
+    margin: 0;
     background: var(--ios-bg);
+    overflow: hidden;
   }
   .desktop-controls-bar {
-    display: none;
+    display: none !important;
   }
   .iphone-frame {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    width: 100%;
     max-width: 100%;
-    height: 100vh;
+    height: 100%;
+    height: 100dvh;
     border-radius: 0;
     box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
   .iphone-frame.fullscreen-mode {
-    height: 100vh;
+    height: 100dvh;
     border-radius: 0;
   }
   .iphone-island-container {
-    display: none;
+    display: none !important;
   }
   .ios-status-bar {
-    display: none;
+    display: none !important;
+  }
+  .ios-nav-header {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(52px + env(safe-area-inset-top, 0px));
+    flex-shrink: 0;
+  }
+  .ios-tab-bar {
+    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px));
+    height: auto;
+    min-height: 56px;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .ios-home-indicator {
+    display: none !important;
   }
 }
 

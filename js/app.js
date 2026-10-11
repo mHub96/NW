@@ -96,6 +96,54 @@ document.addEventListener("DOMContentLoaded", async () => {
       setupTabBarForRole(user.role);
       renderCurrentView();
       notifications.updateBadges();
+      checkAndPromptNotificationPermission();
+    }
+  }
+
+  function checkAndPromptNotificationPermission() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "default") {
+      if (sessionStorage.getItem("neuroware_notif_prompt_dismissed")) return;
+      if (document.getElementById("pushPermissionPromptCard")) return;
+
+      const card = document.createElement("div");
+      card.id = "pushPermissionPromptCard";
+      card.className = "ios-card";
+      card.style.cssText = "margin: 10px 14px 4px 14px; padding: 12px 14px; background: linear-gradient(135deg, rgba(0,122,255,0.12), rgba(88,86,214,0.14)); border: 1px solid rgba(0,122,255,0.35); border-radius: 16px; animation: slideDownToast 0.3s ease; position: relative; z-index: 100;";
+      card.innerHTML = `
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px;">
+          <div style="font-size:26px;line-height:1;">🔔</div>
+          <div style="flex:1;">
+            <div style="font-weight:700;font-size:14px;color:var(--ios-text-primary);">Enable Phone Notifications</div>
+            <div style="font-size:12px;color:var(--ios-text-secondary);margin-top:2px;line-height:1.35;">
+              Allow NeuroWare to send shift alarms, stock refills, and low-stock warnings directly to your phone.
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" id="btnAllowPushFromCard" class="ios-btn ios-btn-primary ios-btn-sm" style="flex:1.4;font-weight:700;justify-content:center;">
+            🔔 Allow Notifications
+          </button>
+          <button type="button" id="btnDismissPushCard" class="ios-btn ios-btn-secondary ios-btn-sm" style="flex:1;justify-content:center;">
+            Maybe Later
+          </button>
+        </div>
+      `;
+
+      const mainContainer = document.getElementById("appScreenContent");
+      if (mainContainer) {
+        mainContainer.insertAdjacentElement("beforebegin", card);
+
+        document.getElementById("btnAllowPushFromCard")?.addEventListener("click", async () => {
+          card.remove();
+          await notifications.requestPermission();
+        });
+
+        document.getElementById("btnDismissPushCard")?.addEventListener("click", () => {
+          sessionStorage.setItem("neuroware_notif_prompt_dismissed", "1");
+          card.remove();
+        });
+      }
     }
   }
 
@@ -3211,6 +3259,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           try {
             await auth.login(u, p);
             checkAuthAndRender();
+            if ("Notification" in window && Notification.permission === "default") {
+              notifications.requestPermission().catch(() => {});
+            }
           } catch (err) {
             alert(err.message);
             btn.disabled = false;

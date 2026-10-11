@@ -12,8 +12,47 @@ class NotificationManager {
     this.audioContext = null;
     this.soundEnabled = true;
 
-    // Auto-prompt or check notification permissions
+    // Track seen notification IDs to prevent duplicate alerts on initial page load
+    this.seenNotifIds = new Set();
+    const db = this.getDb();
+    if (db && Array.isArray(db.notifications)) {
+      db.notifications.forEach(n => this.seenNotifIds.add(n.id));
+    }
+
+    // 1. Listen for new local notifications (created by inventory actions/refills/low-stock)
+    window.addEventListener("neuroware:new_notification", (e) => {
+      if (e && e.detail) {
+        this.seenNotifIds.add(e.detail.id);
+        this.handleIncomingNotification(e.detail);
+      }
+    });
+
+    // 2. Listen for cloud database syncs (picked up by background polling)
+    window.addEventListener("neuroware:data_synced", (e) => {
+      const cloudData = e.detail;
+      if (cloudData && Array.isArray(cloudData.notifications)) {
+        this.handleCloudSyncedNotifications(cloudData.notifications);
+      }
+    });
+
+    // Auto-check permission status
     this.checkPermissionStatus();
+  }
+
+  handleCloudSyncedNotifications(notifications) {
+    const currentUser = this.auth.getCurrentUser();
+    if (!currentUser) return;
+
+    // Check newly synced notifications that arrived from other users / admins
+    for (const notif of notifications) {
+      if (!this.seenNotifIds.has(notif.id)) {
+        this.seenNotifIds.add(notif.id);
+        const readBy = notif.readBy || [];
+        if (!readBy.includes(currentUser.username)) {
+          this.handleIncomingNotification(notif);
+        }
+      }
+    }
   }
 
   // Check if browser supports and has granted push notification permission
@@ -29,18 +68,25 @@ class NotificationManager {
   // Prompt user for push notification permission
   async requestPermission() {
     if (!("Notification" in window)) {
-      alert("Push notifications are not supported by this browser.");
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+      if (isIOS) {
+        alert("On iPhone, push notifications require adding NeuroWare to your Home Screen.\n\nTap the Share icon (⬆️) in Safari, then tap 'Add to Home Screen'.");
+      } else {
+        alert("Push notifications are not supported in this browser.");
+      }
       return false;
     }
+
     try {
       const permission = await Notification.requestPermission();
       if (permission === "granted") {
         await this.sendPushNotification({
-          id: "push-perm-test",
+          id: "push-perm-active-" + Date.now(),
           title: "🔔 Push Notifications Active",
-          message: "NeuroWare will deliver shift alarms, refills, and low-stock alerts even when closed.",
+          message: "NeuroWare will now deliver shift alarms, refills, and low-stock alerts directly to your phone.",
           priority: "normal"
         });
+        this.updateBadges();
         return true;
       }
       return false;
@@ -63,35 +109,53 @@ class NotificationManager {
       try {
         const registration = await navigator.serviceWorker.ready;
         if (registration && registration.showNotification) {
-          await registration.showNotification(title, {
-            body: body,
-            icon: "./assets/icon.svg",
-            badge: "./assets/icon.svg",
-            vibrate: [250, 100, 250],
-            tag: tag,
-            renotify: true,
-            data: {
-              url: "./",
-              id: notif.id,
-              timestamp: Date.now()
-            }
-          });
-          return;
+          try {
+            await registration.showNotification(title, {
+              body: body,
+              icon: "./assets/icon.svg",
+              badge: "./assets/icon.svg",
+              vibrate: [250, 100, 250],
+              tag: tag,
+              renotify: true,
+              data: {
+                url: "./",
+                id: notif.id,
+                timestamp: Date.now()
+              }
+            });
+            return;
+          } catch (iconErr) {
+            // Some platforms reject SVG icons in notifications, fallback without icon
+            await registration.showNotification(title, {
+              body: body,
+              vibrate: [250, 100, 250],
+              tag: tag,
+              renotify: true
+            });
+            return;
+          }
         }
       } catch (swErr) {
         console.warn("ServiceWorker showNotification note:", swErr);
       }
     }
 
-    // 2. Fallback to desktop Notification API
+    // 2. Direct Notification API Fallback
     try {
-      new Notification(title, {
-        body: body,
-        icon: "./assets/icon.svg",
-        badge: "./assets/icon.svg",
-        vibrate: [250, 100, 250],
-        tag: tag
-      });
+      try {
+        new Notification(title, {
+          body: body,
+          icon: "./assets/icon.svg",
+          badge: "./assets/icon.svg",
+          vibrate: [250, 100, 250],
+          tag: tag
+        });
+      } catch (e1) {
+        new Notification(title, {
+          body: body,
+          tag: tag
+        });
+      }
     } catch (e) {
       console.warn("Desktop notification fallback note:", e);
     }
@@ -109,8 +173,8 @@ class NotificationManager {
 
     await this.sendPushNotification({
       id: "test-push-" + Date.now(),
-      title: "🧠 NeuroWare Push Test",
-      message: "OS Push notification delivered successfully! You will receive live shift and inventory updates.",
+      title: "🧠 NeuroWare Push Alert",
+      message: "OS Push notification delivered successfully! You will receive live shift and inventory updates on this phone.",
       priority: "normal"
     });
   }
@@ -162,12 +226,6 @@ class NotificationManager {
     } catch (e) {
       // Audio might be blocked before first user gesture
     }
-  }
-
-  handleIncomingNotification(notif) {
-    this.playChime(notif.priority);
-    this.showToast(notif);
-    this.updateBadges();
   }
 
   // Show floating iOS toast alert banner

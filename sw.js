@@ -1,10 +1,10 @@
 /**
  * NeuroWare Service Worker
- * Version: 2.3.0
+ * Version: 2.4.0
  * Resilient Offline Storage, OS Push Notifications & Auto-Updating Engine
  */
 
-const CACHE_NAME = 'neuroware-v2.3';
+const CACHE_NAME = 'neuroware-v2.4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -89,6 +89,31 @@ self.addEventListener('push', (event) => {
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// --- Message Handler (Allow foreground/background clients to post notification requests) ---
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const notif = event.data.notif;
+    if (!notif) return;
+    const title = notif.title || 'NeuroWare Alert';
+    const body = notif.message || 'Neurosurgical inventory update';
+    self.registration.showNotification(title, {
+      body: body,
+      icon: './assets/icon.svg',
+      badge: './assets/icon.svg',
+      vibrate: [250, 100, 250],
+      tag: notif.id || ('nw-post-' + Date.now()),
+      renotify: true,
+      data: { url: './', id: notif.id }
+    }).catch(() => {
+      self.registration.showNotification(title, {
+        body: body,
+        vibrate: [250, 100, 250],
+        tag: notif.id || ('nw-post-' + Date.now())
+      });
+    });
+  }
 });
 
 // --- Notification Click Handler (Brings app to foreground when user taps alert) ---
