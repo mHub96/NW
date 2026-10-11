@@ -50,6 +50,17 @@
 - **Active Auto-Updating**: The Progressive Web App periodically checks for updates and immediately updates its cache and reload whenever a new version is pushed.
 - **Luxury 3D "Brain as Treasure Chest" Icon**: An ornate 3D icon depicting the cerebral cortex sculpted as an antique treasure chest with gold gyri, brass rivets, mahogany base, glowing cyan neural interior, and ruby/sapphire escutcheon lock.
 
+### 7. Patient Records Management & Automatic Inventory Stock Retrieval
+- **Unique Medical IDs & Chronological Timeline**:
+  - Every enrolled patient receives an automatically generated unique 6-digit clinical ID (e.g., `PID-556587`).
+  - Historical surgeries can be inspected via an expandable operations timeline per patient.
+- **Manager Editing Controls**:
+  - Owner and OR Admins can edit patient demographic records (name and gender), automatically propagating updates across all historical surgical log entries.
+  - Operation records can be edited with smart chronological age validation against all prior and subsequent surgeries.
+- **Record Deletion with Automatic Stock Retrieval**:
+  - Deleting an individual operation record or an entire patient profile **automatically retrieves all consumed surgical tools and implants directly back into inventory stock** at their exact specific parameter combinations.
+  - Generates clear audit notifications and broadcasts inventory restock events across the system.
+
 ---
 
 ## ⚡ Default Accounts
@@ -61,3 +72,10 @@
 | **REGULAR** | `dr_kareem` | `Kareem2026!` | 1 Device (Single Device Lock) |
 | **REGULAR** | `dr_anwar` | `Anwar2026!` | 2 Devices |
 | **REGULAR** | `resident_ali` | `Resident2026!` | 1 Device |
+
+---
+
+## 👨‍⚕️ Developer & Intellectual Property
+* **Lead Developer & Programmer**: Dr. Mohammed Riyadh
+* **Clinical Specialization**: Neurosurgical Operating Theater Inventory & Supply Chain Engineering
+* **Copyright**: © 2026 Dr. Mohammed Riyadh. All rights reserved.

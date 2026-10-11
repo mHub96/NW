@@ -1324,6 +1324,23 @@ html, body {
   border-color: var(--ios-blue);
 }
 
+.btn-ctrl-sm {
+  padding: 4px 10px;
+  font-size: 11.5px;
+}
+
+.surgical-log-entry .btn-ctrl,
+.patient-record-card .btn-ctrl {
+  background: var(--ios-bg-tertiary);
+  color: var(--ios-text-primary);
+  border: 1px solid var(--ios-separator);
+}
+
+.surgical-log-entry .btn-ctrl:hover,
+.patient-record-card .btn-ctrl:hover {
+  background: rgba(0, 122, 255, 0.12);
+}
+
 /* PWA Installation Offer Banner */
 .pwa-install-banner {
   background: var(--ios-card);

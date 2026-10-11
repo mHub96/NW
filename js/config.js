@@ -15,7 +15,7 @@ const CONFIG = {
   apiUrl: "https://api.github.com",
   backupRepo: "s",
   appName: "NeuroWare",
-  version: "2.2.0",
+  version: "2.3.0",
   lastUpdated: "2026-10-11",
   author: "Dr. Mohammed Riyadh",
   defaultAlarmThreshold: 2,

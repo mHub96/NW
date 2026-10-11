@@ -334,6 +334,205 @@ class InventoryManager {
     return true;
   }
 
+  // --- Inventory Item Retrieval Helper ---
+  // Retrieves consumed surgical tools and returns them directly back to inventory stock
+  _restoreLogItemsToInventory(db, items) {
+    if (!items || !Array.isArray(items)) return [];
+    const restoredSummary = [];
+
+    for (const trayItem of items) {
+      const dbItem = (db.items || []).find(it => it.id === trayItem.itemId);
+      if (!dbItem) continue;
+
+      const qty = parseInt(trayItem.quantity, 10) || 1;
+      const hasAttributes = dbItem.attributes && dbItem.attributes.length > 0;
+      let specText = "";
+
+      if (hasAttributes) {
+        if (!dbItem.variants) dbItem.variants = [];
+        let variant = this.findVariant(dbItem, trayItem.selectedAttributes);
+        if (variant) {
+          variant.quantity = (parseInt(variant.quantity, 10) || 0) + qty;
+        } else {
+          // Re-create the variant if not found
+          variant = {
+            id: "var-" + Date.now().toString(36) + "-" + Math.random().toString(36).substring(2, 6),
+            attributes: { ...trayItem.selectedAttributes },
+            quantity: qty,
+            lowStockThreshold: dbItem.lowStockThreshold || 2,
+            sku: dbItem.sku ? `${dbItem.sku}-${dbItem.variants.length + 1}` : ""
+          };
+          dbItem.variants.push(variant);
+        }
+        specText = Object.entries(trayItem.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+      } else {
+        dbItem.quantity = (parseInt(dbItem.quantity, 10) || 0) + qty;
+      }
+
+      dbItem.updatedAt = new Date().toISOString();
+      restoredSummary.push(`${qty}x ${dbItem.name}${specText ? ` [${specText}]` : ''}`);
+    }
+
+    return restoredSummary;
+  }
+
+  // --- Admin/Owner: Edit Patient Demographic Record ---
+  async updatePatient(patientId, updates) {
+    if (!this.auth.isAdmin()) throw new Error("Only Managers (Owner / Admin) can edit patient records.");
+    const db = this.getDb();
+    if (!db.patients) db.patients = [];
+
+    let patient = db.patients.find(p => p.id === patientId);
+    const oldName = patient ? patient.name : null;
+
+    if (!patient) {
+      patient = {
+        id: patientId,
+        name: updates.name ? updates.name.trim() : "Unknown Patient",
+        gender: updates.gender || "Male",
+        createdAt: new Date().toISOString()
+      };
+      db.patients.push(patient);
+    }
+
+    if (updates.name && updates.name.trim()) {
+      patient.name = updates.name.trim();
+    }
+    if (updates.gender) {
+      patient.gender = updates.gender;
+    }
+    patient.updatedAt = new Date().toISOString();
+
+    // Cascade patient name and gender to all historical usage logs
+    if (db.usageLogs && Array.isArray(db.usageLogs)) {
+      db.usageLogs.forEach(l => {
+        if (l.patientId === patientId || (oldName && l.patientName && l.patientName.trim().toLowerCase() === oldName.trim().toLowerCase())) {
+          l.patientId = patientId;
+          if (updates.name && updates.name.trim()) l.patientName = updates.name.trim();
+          if (updates.gender) l.patientGender = updates.gender;
+        }
+      });
+    }
+
+    await this.saveDb(db, `Updated patient details: ${patient.name} (${patientId})`);
+    return this.enrichPatient(patient);
+  }
+
+  // --- Admin/Owner: Delete Patient Record & Retrieve All Consumed Items to Inventory ---
+  async deletePatient(patientId) {
+    if (!this.auth.isAdmin()) throw new Error("Only Managers (Owner / Admin) can delete patient records.");
+    const db = this.getDb();
+    const user = this.auth.getCurrentUser();
+
+    let patient = (db.patients || []).find(p => p.id === patientId);
+    const patientName = patient ? patient.name : patientId;
+
+    // Find all operations/logs for this patient
+    const logsToDelete = (db.usageLogs || []).filter(l => 
+      l.patientId === patientId || 
+      (patient && l.patientName && l.patientName.trim().toLowerCase() === patient.name.trim().toLowerCase())
+    );
+
+    // Retrieve ALL consumed items across all operations back to inventory
+    const allRestoredItems = [];
+    for (const log of logsToDelete) {
+      const restored = this._restoreLogItemsToInventory(db, log.items);
+      allRestoredItems.push(...restored);
+    }
+
+    // Remove logs from db.usageLogs
+    const logIdsToDelete = new Set(logsToDelete.map(l => l.id));
+    if (db.usageLogs) {
+      db.usageLogs = db.usageLogs.filter(l => !logIdsToDelete.has(l.id));
+    }
+
+    // Remove patient from db.patients
+    if (db.patients) {
+      db.patients = db.patients.filter(p => p.id !== patientId);
+    }
+
+    // Notification of deletion and stock retrieval
+    this.createNotification({
+      type: "inventory_restored",
+      priority: "normal",
+      title: `Patient Deleted & Items Retrieved: ${patientName}`,
+      message: `Patient profile for ${patientName} (${patientId}) and ${logsToDelete.length} operation record(s) deleted by ${user.fullName || user.username}. All consumed surgical items retrieved back to inventory stock: ${allRestoredItems.length > 0 ? allRestoredItems.join(", ") : 'No items'}.`,
+      metadata: { patientId, patientName, restoredItems: allRestoredItems, opCount: logsToDelete.length }
+    });
+
+    await this.saveDb(db, `Deleted patient ${patientName} (${patientId}) and retrieved ${allRestoredItems.length} items to inventory`);
+    return { success: true, patientName, restoredItems: allRestoredItems, deletedOpsCount: logsToDelete.length };
+  }
+
+  getOperationLogById(logId) {
+    const db = this.getDb();
+    return (db.usageLogs || []).find(l => l.id === logId) || null;
+  }
+
+  // --- Admin/Owner: Edit Single Operation Record ---
+  async updateOperationLog(logId, updates) {
+    if (!this.auth.isAdmin()) throw new Error("Only Managers (Owner / Admin) can edit operation records.");
+    const db = this.getDb();
+    if (!db.usageLogs) throw new Error("No operations logged.");
+
+    const log = db.usageLogs.find(l => l.id === logId);
+    if (!log) throw new Error("Operation log not found.");
+
+    // Validate chronological age if age or date changed
+    const targetDate = updates.date || log.date;
+    const targetAge = updates.patientAge !== undefined ? updates.patientAge : log.patientAge;
+    if (targetAge !== null && targetAge !== undefined && targetAge !== "") {
+      const originalAge = log.patientAge;
+      const originalDate = log.date;
+      log.patientAge = null;
+      try {
+        this.validatePatientAge(log.patientId, targetDate, targetAge);
+      } finally {
+        log.patientAge = originalAge;
+        log.date = originalDate;
+      }
+    }
+
+    if (updates.date) log.date = updates.date;
+    if (updates.patientAge !== undefined) log.patientAge = updates.patientAge !== "" ? parseInt(updates.patientAge, 10) : null;
+    if (updates.specialistCare) log.specialistCare = updates.specialistCare.trim();
+    if (updates.bedNumber !== undefined) log.bedNumber = updates.bedNumber.trim();
+    if (updates.procedureName) log.procedureName = updates.procedureName.trim();
+    if (updates.notes !== undefined) log.notes = updates.notes.trim();
+    log.updatedAt = new Date().toISOString();
+
+    await this.saveDb(db, `Updated surgical operation record for ${log.patientName} (${log.date})`);
+    return log;
+  }
+
+  // --- Admin/Owner: Delete Single Operation Record & Retrieve Consumed Items to Inventory ---
+  async deleteOperationLog(logId) {
+    if (!this.auth.isAdmin()) throw new Error("Only Managers (Owner / Admin) can delete operation records.");
+    const db = this.getDb();
+    const user = this.auth.getCurrentUser();
+    if (!db.usageLogs) throw new Error("No operations logged.");
+
+    const idx = db.usageLogs.findIndex(l => l.id === logId);
+    if (idx === -1) throw new Error("Operation log not found.");
+
+    const [deletedLog] = db.usageLogs.splice(idx, 1);
+
+    // Retrieve items back to inventory
+    const restoredItems = this._restoreLogItemsToInventory(db, deletedLog.items);
+
+    // Notification of operation deletion and item retrieval
+    this.createNotification({
+      type: "inventory_restored",
+      priority: "normal",
+      title: `Operation Deleted & Items Retrieved: ${deletedLog.patientName}`,
+      message: `Operation on ${deletedLog.date} (${deletedLog.procedureName}) for ${deletedLog.patientName} deleted by ${user.fullName || user.username}. Retrieved ${restoredItems.length} items back to storage: ${restoredItems.length > 0 ? restoredItems.join(", ") : 'No items'}.`,
+      metadata: { logId, patientName: deletedLog.patientName, restoredItems }
+    });
+
+    await this.saveDb(db, `Deleted operation for ${deletedLog.patientName} (${deletedLog.date}) & retrieved ${restoredItems.length} items`);
+    return { success: true, deletedLog, restoredItems };
+  }
+
   // --- Admin/Owner: Add new item to storage ---
   async addItem(itemData) {
     if (!this.auth.isAdmin()) throw new Error("Only Managers (Owner/Admin) can add inventory items.");

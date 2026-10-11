@@ -1723,6 +1723,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           specialist: selectedSpecialist,
           search: searchQ
         });
+        const isAdmin = auth.isAdmin();
 
         const listContainer = document.getElementById("logbookEntriesList");
         const statsBadge = document.getElementById("logStatsSummary");
@@ -1784,6 +1785,17 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${log.notes ? `
                 <div style="margin-top:8px;font-size:12px;color:var(--ios-text-secondary);font-style:italic;background:var(--ios-card);padding:6px 8px;border-radius:6px;border-left:2px solid var(--ios-blue);">
                   "${log.notes}"
+                </div>
+              ` : ''}
+
+              ${isAdmin ? `
+                <div style="display:flex;gap:8px;margin-top:10px;padding-top:8px;border-top:1px solid var(--ios-separator);justify-content:flex-end;">
+                  <button type="button" class="btn-ctrl btn-ctrl-sm" onclick="window.openEditOpModal('${log.id}')" title="Edit this operation record" style="font-size:12px;color:var(--ios-blue);">
+                    ✏️ Edit Op
+                  </button>
+                  <button type="button" class="btn-ctrl btn-ctrl-sm" onclick="window.confirmDeleteOp('${log.id}')" title="Delete record and retrieve items to storage" style="font-size:12px;color:var(--ios-red);">
+                    🗑️ Delete & Return Items
+                  </button>
                 </div>
               ` : ''}
             </div>
@@ -1865,6 +1877,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         `;
       }
 
+      const isAdmin = auth.isAdmin();
+
       return patients.map(patient => {
         const ops = patient.operations || [];
         const opCount = ops.length;
@@ -1897,8 +1911,19 @@ document.addEventListener("DOMContentLoaded", async () => {
               ${patient.lastBed ? `<span style="background:var(--ios-bg-tertiary);padding:3px 8px;border-radius:6px;color:var(--ios-text-secondary);">🛏️ ${patient.lastBed}</span>` : ''}
             </div>
 
+            ${isAdmin ? `
+              <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;padding:6px 0;border-top:1px solid var(--ios-separator);border-bottom:1px solid var(--ios-separator);">
+                <button type="button" class="btn-ctrl btn-ctrl-sm" onclick="window.openEditPatientModal('${patient.id}')" title="Edit patient profile (Name & Gender)" style="font-size:11.5px;color:var(--ios-blue);">
+                  ✏️ Edit Patient
+                </button>
+                <button type="button" class="btn-ctrl btn-ctrl-sm" onclick="window.confirmDeletePatient('${patient.id}')" title="Delete patient record & retrieve all consumed items back to inventory" style="font-size:11.5px;color:var(--ios-red);margin-left:auto;">
+                  🗑️ Delete Patient & Return Items
+                </button>
+              </div>
+            ` : ''}
+
             <!-- Collapsible Accordion Button (NOT EXPANDED BY DEFAULT!) -->
-            <div style="display:flex;gap:8px;margin-top:10px;">
+            <div style="display:flex;gap:8px;margin-top:6px;">
               <button type="button" class="ios-btn ios-btn-secondary ios-btn-sm btn-toggle-patient-ops" data-patient-id="${patient.id}" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;">
                 <span class="accordion-arrow">▶</span> <span class="accordion-label">View Operations History (${opCount})</span>
               </button>
@@ -1920,6 +1945,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (!ops || ops.length === 0) {
         return `<div style="font-size:12px;color:var(--ios-text-secondary);font-style:italic;text-align:center;padding:10px;">No surgery logs registered yet for this patient profile.</div>`;
       }
+
+      const isAdmin = auth.isAdmin();
 
       return ops.map((op, idx) => {
         const itemsRendered = (op.items || []).map(it => {
@@ -1958,6 +1985,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${op.notes ? `
               <div style="margin-top:6px;font-size:11.5px;color:var(--ios-text-secondary);font-style:italic;background:var(--ios-card);padding:4px 8px;border-radius:6px;">
                 "${op.notes}"
+              </div>
+            ` : ''}
+
+            ${isAdmin ? `
+              <div style="display:flex;gap:6px;margin-top:8px;padding-top:6px;border-top:1px dashed var(--ios-separator);justify-content:flex-end;">
+                <button type="button" class="btn-ctrl" onclick="window.openEditOpModal('${op.id}')" style="font-size:11px;color:var(--ios-blue);">
+                  ✏️ Edit Op
+                </button>
+                <button type="button" class="btn-ctrl" onclick="window.confirmDeleteOp('${op.id}')" style="font-size:11px;color:var(--ios-red);" title="Delete operation and retrieve items back to inventory stock">
+                  🗑️ Delete Op & Return Items
+                </button>
               </div>
             ` : ''}
           </div>
@@ -2004,6 +2042,382 @@ document.addEventListener("DOMContentLoaded", async () => {
         window.linkAndLockPatient(patient);
       }
     }, 120);
+  };
+
+  // --- Admin/Owner: Edit Patient Record Modal ---
+  window.openEditPatientModal = (patientId) => {
+    if (!auth.isAdmin()) {
+      alert("Only Managers (Owner / Admin) can edit patient records.");
+      return;
+    }
+
+    const patient = inventory.getPatientById(patientId);
+    if (!patient) {
+      alert("Patient record not found.");
+      return;
+    }
+
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+
+    title.textContent = "Edit Patient Record";
+    body.innerHTML = `
+      <form id="editPatientModalForm">
+        <div style="background:rgba(0,122,255,0.08);border:1px solid rgba(0,122,255,0.2);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--ios-text-secondary);text-transform:uppercase;">Unique Medical ID</div>
+            <div style="font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--ios-blue);margin-top:2px;">${patient.id}</div>
+          </div>
+          <span class="stock-badge healthy">${patient.operationsCount || 0} Surgeries Linked</span>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Patient Full Name *</label>
+          <input type="text" id="editPatientName" class="ios-input" value="${patient.name}" required placeholder="Full patient legal name">
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Patient Gender</label>
+          <select id="editPatientGender" class="ios-select">
+            <option value="Male" ${patient.gender === 'Male' ? 'selected' : ''}>Male</option>
+            <option value="Female" ${patient.gender === 'Female' ? 'selected' : ''}>Female</option>
+            <option value="Not Specified" ${patient.gender === 'Not Specified' ? 'selected' : ''}>Not Specified</option>
+          </select>
+        </div>
+
+        <div style="font-size:11.5px;color:var(--ios-text-secondary);background:var(--ios-card-inner);padding:8px 10px;border-radius:8px;margin-bottom:14px;line-height:1.4;">
+          ℹ️ <strong>System Note:</strong> Updating this patient record preserves the unique ID (<strong>${patient.id}</strong>) and automatically propagates the updated name and details across all historical surgical operation records.
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="ios-btn ios-btn-primary" style="flex:1;">Save Patient Changes</button>
+          <button type="button" class="ios-btn ios-btn-secondary" style="flex:1;" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    `;
+
+    document.getElementById("editPatientModalForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const newName = document.getElementById("editPatientName").value.trim();
+      const newGender = document.getElementById("editPatientGender").value;
+
+      if (!newName) {
+        alert("Patient name is required.");
+        return;
+      }
+
+      try {
+        await inventory.updatePatient(patientId, { name: newName, gender: newGender });
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        alert("Failed to update patient: " + err.message);
+      }
+    });
+
+    openModal();
+  };
+
+  // --- Admin/Owner: Confirm & Delete Patient Record (with full inventory retrieval) ---
+  window.confirmDeletePatient = (patientId) => {
+    if (!auth.isAdmin()) {
+      alert("Only Managers (Owner / Admin) can delete patient records.");
+      return;
+    }
+
+    const patient = inventory.getPatientById(patientId);
+    if (!patient) {
+      alert("Patient record not found.");
+      return;
+    }
+
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+
+    const ops = patient.operations || [];
+    const allConsumed = [];
+    ops.forEach(op => {
+      (op.items || []).forEach(it => {
+        const specs = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+        allConsumed.push({
+          name: it.itemName,
+          qty: it.quantity,
+          specs: specs
+        });
+      });
+    });
+
+    title.textContent = "Delete Patient & Retrieve Items";
+    body.innerHTML = `
+      <div style="background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--ios-red);font-weight:700;font-size:14px;">
+          <span>⚠️</span> Permanent Deletion & Inventory Restock
+        </div>
+        <p style="margin:8px 0 0 0;font-size:13px;color:var(--ios-text-primary);line-height:1.4;">
+          Are you sure you want to delete patient record for <strong>${patient.name}</strong> (<span style="font-family:var(--font-mono);">${patient.id}</span>)?
+        </p>
+        <p style="margin:6px 0 0 0;font-size:12px;color:var(--ios-text-secondary);line-height:1.4;">
+          This will permanently delete <strong>${ops.length} surgical operation record(s)</strong> and <strong>RETRIEVE ALL CONSUMED SURGICAL ITEMS DIRECTLY BACK INTO STORAGE STOCK</strong>.
+        </p>
+      </div>
+
+      ${allConsumed.length > 0 ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ios-blue);text-transform:uppercase;margin-bottom:6px;">
+            Surgical Items to be Retrieved Back into Inventory (${allConsumed.length}):
+          </div>
+          <div style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:5px;">
+            ${allConsumed.map(i => `
+              <div style="font-size:12px;padding:6px 10px;background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:8px;">
+                🔹 <strong>+${i.qty}x ${i.name}</strong>
+                ${i.specs ? `<div style="color:var(--ios-text-secondary);font-size:11px;margin-top:2px;">${i.specs}</div>` : ''}
+              </div>
+            `).join("")}
+          </div>
+        </div>
+      ` : `
+        <div style="font-size:12px;color:var(--ios-text-secondary);margin-bottom:14px;font-style:italic;">
+          No items were recorded as consumed for this patient.
+        </div>
+      `}
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" id="btnExecDeletePatient" class="ios-btn ios-btn-danger" style="width:100%;font-weight:700;">
+          🗑️ Confirm Delete & Retrieve Items to Storage
+        </button>
+        <button type="button" class="ios-btn ios-btn-secondary" style="width:100%;" onclick="closeModal()">
+          Cancel
+        </button>
+      </div>
+    `;
+
+    document.getElementById("btnExecDeletePatient").addEventListener("click", async () => {
+      try {
+        const btn = document.getElementById("btnExecDeletePatient");
+        btn.disabled = true;
+        btn.textContent = "Retrieving Items & Deleting...";
+        await inventory.deletePatient(patientId);
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        alert("Failed to delete patient: " + err.message);
+      }
+    });
+
+    openModal();
+  };
+
+  // --- Admin/Owner: Edit Single Operation Log Modal ---
+  window.openEditOpModal = (logId) => {
+    if (!auth.isAdmin()) {
+      alert("Only Managers (Owner / Admin) can edit operation records.");
+      return;
+    }
+
+    const log = inventory.getOperationLogById(logId);
+    if (!log) {
+      alert("Operation record not found.");
+      return;
+    }
+
+    const db = getDb();
+    const specialists = db?.specialists || [];
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+
+    const itemsSummary = (log.items || []).map(it => {
+      const specs = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+      return `🔹 ${it.quantity}x ${it.itemName}${specs ? ` [${specs}]` : ''}`;
+    }).join("<br>");
+
+    title.textContent = "Edit Operation Record";
+    body.innerHTML = `
+      <form id="editOpModalForm">
+        <div style="background:rgba(0,122,255,0.08);border:1px solid rgba(0,122,255,0.2);border-radius:12px;padding:10px 12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:11px;color:var(--ios-text-secondary);font-weight:700;text-transform:uppercase;">Patient</div>
+            <div style="font-weight:700;font-size:14px;color:var(--ios-text-primary);margin-top:2px;">👤 ${log.patientName}</div>
+          </div>
+          ${log.patientId ? `<span style="font-family:var(--font-mono);font-size:12px;color:var(--ios-blue);font-weight:700;background:rgba(0,122,255,0.12);padding:3px 8px;border-radius:10px;">${log.patientId}</span>` : ''}
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <div class="ios-input-group" style="flex:1;">
+            <label class="ios-label">Operation Date *</label>
+            <input type="date" id="editOpDate" class="ios-input" value="${log.date}" required>
+          </div>
+          <div class="ios-input-group" style="flex:1;">
+            <label class="ios-label">Patient Age (Years)</label>
+            <input type="number" id="editOpAge" class="ios-input" value="${log.patientAge || ''}" min="0" max="130">
+          </div>
+        </div>
+
+        <div id="editOpAgeNotice" style="font-size:11px;color:var(--ios-text-secondary);margin-top:-6px;margin-bottom:12px;line-height:1.3;"></div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Attending Specialist Care *</label>
+          <select id="editOpSpecialist" class="ios-select" required>
+            ${specialists.map(s => `<option value="${s.name}" ${log.specialistCare === s.name ? 'selected' : ''}>${s.name} (${s.title})</option>`).join("")}
+          </select>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <div class="ios-input-group" style="flex:1;">
+            <label class="ios-label">Bed / Location</label>
+            <input type="text" id="editOpBed" class="ios-input" value="${log.bedNumber || ''}" placeholder="e.g. Bed 4, ICU, OT 2">
+          </div>
+          <div class="ios-input-group" style="flex:1.4;">
+            <label class="ios-label">Procedure Name</label>
+            <input type="text" id="editOpProcedure" class="ios-input" value="${log.procedureName || ''}" placeholder="e.g. VP Shunt Placement">
+          </div>
+        </div>
+
+        <div class="ios-input-group">
+          <label class="ios-label">Surgical Notes</label>
+          <textarea id="editOpNotes" class="ios-textarea" placeholder="Intraoperative findings, implant notes...">${log.notes || ''}</textarea>
+        </div>
+
+        <div style="background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:10px;padding:8px 12px;margin-bottom:14px;font-size:11.5px;">
+          <div style="color:var(--ios-text-secondary);font-weight:700;margin-bottom:3px;text-transform:uppercase;">Consumed Surgical Items in this Op:</div>
+          <div style="color:var(--ios-text-primary);line-height:1.4;">${itemsSummary || 'None'}</div>
+        </div>
+
+        <div style="display:flex;gap:10px;">
+          <button type="submit" class="ios-btn ios-btn-primary" style="flex:1;">Save Operation Changes</button>
+          <button type="button" class="ios-btn ios-btn-secondary" style="flex:1;" onclick="closeModal()">Cancel</button>
+        </div>
+      </form>
+    `;
+
+    const dateInput = document.getElementById("editOpDate");
+    const ageInput = document.getElementById("editOpAge");
+    const ageNotice = document.getElementById("editOpAgeNotice");
+
+    function updateAgeNotice() {
+      if (!log.patientId || !dateInput.value) {
+        ageNotice.textContent = "";
+        return;
+      }
+      try {
+        const bounds = inventory.getAgeBoundsForDate(log.patientId, dateInput.value);
+        if (bounds.hasRestrictions) {
+          let text = "ℹ️ Chronological Age Range: ";
+          if (bounds.minReferenceOp && bounds.maxReferenceOp) {
+            text += `Must be between ${bounds.minAge} and ${bounds.maxAge} years old based on patient's prior surgeries.`;
+          } else if (bounds.minReferenceOp) {
+            text += `Must be at least ${bounds.minAge} years old (recorded as ${bounds.minAge} on ${bounds.minReferenceOp.date}).`;
+          } else if (bounds.maxReferenceOp) {
+            text += `Cannot exceed ${bounds.maxAge} years old (recorded as ${bounds.maxAge} on ${bounds.maxReferenceOp.date}).`;
+          }
+          ageNotice.textContent = text;
+          ageNotice.style.color = "var(--ios-blue)";
+        } else {
+          ageNotice.textContent = "";
+        }
+      } catch (e) {
+        ageNotice.textContent = "";
+      }
+    }
+
+    dateInput.addEventListener("change", updateAgeNotice);
+    updateAgeNotice();
+
+    document.getElementById("editOpModalForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      try {
+        await inventory.updateOperationLog(logId, {
+          date: dateInput.value,
+          patientAge: ageInput.value ? parseInt(ageInput.value, 10) : null,
+          specialistCare: document.getElementById("editOpSpecialist").value,
+          bedNumber: document.getElementById("editOpBed").value.trim(),
+          procedureName: document.getElementById("editOpProcedure").value.trim(),
+          notes: document.getElementById("editOpNotes").value.trim()
+        });
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        alert("Failed to update operation: " + err.message);
+      }
+    });
+
+    openModal();
+  };
+
+  // --- Admin/Owner: Confirm & Delete Single Operation Log (with full inventory retrieval) ---
+  window.confirmDeleteOp = (logId) => {
+    if (!auth.isAdmin()) {
+      alert("Only Managers (Owner / Admin) can delete operation records.");
+      return;
+    }
+
+    const log = inventory.getOperationLogById(logId);
+    if (!log) {
+      alert("Operation record not found.");
+      return;
+    }
+
+    const title = document.getElementById("sheetModalTitle");
+    const body = document.getElementById("sheetModalBody");
+
+    const itemsRendered = (log.items || []).map(it => {
+      const specs = Object.entries(it.selectedAttributes || {}).map(([k, v]) => `${k}: ${v}`).join(", ");
+      return `
+        <div style="font-size:12px;padding:6px 10px;background:var(--ios-card-inner);border:1px solid var(--ios-separator);border-radius:8px;margin-bottom:4px;">
+          🔹 <strong>+${it.quantity}x ${it.itemName}</strong>
+          ${specs ? `<div style="color:var(--ios-text-secondary);font-size:11px;margin-top:2px;">${specs}</div>` : ''}
+        </div>
+      `;
+    }).join("");
+
+    title.textContent = "Delete Op & Retrieve Items";
+    body.innerHTML = `
+      <div style="background:rgba(255,59,48,0.1);border:1px solid rgba(255,59,48,0.3);border-radius:14px;padding:14px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;color:var(--ios-red);font-weight:700;font-size:14px;">
+          <span>⚠️</span> Delete Operation & Restore Storage Items
+        </div>
+        <p style="margin:8px 0 0 0;font-size:13px;color:var(--ios-text-primary);line-height:1.4;">
+          Are you sure you want to delete this operation record on <strong>${log.date}</strong> for <strong>${log.patientName}</strong> (${log.procedureName || 'Neurosurgery'})?
+        </p>
+        <p style="margin:6px 0 0 0;font-size:12px;color:var(--ios-text-secondary);line-height:1.4;">
+          Deleting this operation record will <strong>RETRIEVE ALL CONSUMED ITEMS BELOW BACK INTO INVENTORY STOCK</strong>.
+        </p>
+      </div>
+
+      ${itemsRendered ? `
+        <div style="margin-bottom:16px;">
+          <div style="font-size:11.5px;font-weight:700;color:var(--ios-blue);text-transform:uppercase;margin-bottom:6px;">
+            Surgical Items to be Returned to Storage:
+          </div>
+          <div style="max-height:160px;overflow-y:auto;">
+            ${itemsRendered}
+          </div>
+        </div>
+      ` : ''}
+
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button type="button" id="btnExecDeleteOp" class="ios-btn ios-btn-danger" style="width:100%;font-weight:700;">
+          🗑️ Confirm Delete & Retrieve Items to Storage
+        </button>
+        <button type="button" class="ios-btn ios-btn-secondary" style="width:100%;" onclick="closeModal()">
+          Cancel
+        </button>
+      </div>
+    `;
+
+    document.getElementById("btnExecDeleteOp").addEventListener("click", async () => {
+      try {
+        const btn = document.getElementById("btnExecDeleteOp");
+        btn.disabled = true;
+        btn.textContent = "Retrieving Items & Deleting...";
+        await inventory.deleteOperationLog(logId);
+        closeModal();
+        renderCurrentView();
+      } catch (err) {
+        alert("Failed to delete operation: " + err.message);
+      }
+    });
+
+    openModal();
   };
 
   function exportLogsToCsv(logs) {

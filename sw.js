@@ -1,10 +1,10 @@
 /**
  * NeuroWare Service Worker
- * Version: 2.2.0
+ * Version: 2.3.0
  * Resilient Offline Storage, OS Push Notifications & Auto-Updating Engine
  */
 
-const CACHE_NAME = 'neuroware-v2.2';
+const CACHE_NAME = 'neuroware-v2.3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
