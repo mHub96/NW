@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.4.0",
-    "lastUpdated": "2026-10-11T05:32:29.427Z",
+    "lastUpdated": "2026-10-11T12:19:43.353Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -248,6 +248,27 @@
       "phone": "07801112222",
       "createdAt": "2026-10-10T23:59:11.617Z",
       "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3sj52q",
+      "username": "con",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "Conrad",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-uhjdrmd-mv3sikk5",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T12:19:43.347Z",
+          "lastActive": "2026-10-11T12:19:43.347Z"
+        }
+      ],
+      "phone": "07805556666",
+      "createdAt": "2026-10-11T12:19:43.348Z"
     }
   ],
   "items": [
@@ -844,6 +865,19 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3sj52s",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: Conrad",
+      "message": "Staff Conrad (@con) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T12:19:43.348Z",
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3sj52q",
+        "username": "con"
+      }
+    },
     {
       "id": "notif-mv322tc1",
       "type": "signup_request",
