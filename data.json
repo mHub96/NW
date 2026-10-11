@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:00:20.199Z",
+    "lastUpdated": "2026-10-11T15:02:36.798Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -97,6 +97,13 @@
           "platform": "Linux armv81",
           "registeredAt": "2026-10-10T22:32:27.765Z",
           "lastActive": "2026-10-10T23:32:12.656Z"
+        },
+        {
+          "id": "dev-jp4bdcj-mv3yc9sx",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T15:02:36.798Z",
+          "lastActive": "2026-10-11T15:02:36.798Z"
         }
       ],
       "phone": "+9647800000001",
