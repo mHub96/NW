@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:05:41.853Z",
+    "lastUpdated": "2026-10-11T15:05:55.000Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -395,7 +395,7 @@
       "passwordHash": "h_633",
       "fullName": "س",
       "role": "REGULAR",
-      "status": "rejected",
+      "status": "pending",
       "deviceLimit": 1,
       "registeredDevices": [
         {
@@ -407,8 +407,28 @@
         }
       ],
       "phone": "2",
-      "createdAt": "2026-10-11T15:00:20.199Z",
-      "rejectReason": "Rejected by administration"
+      "createdAt": "2026-10-11T15:00:20.199Z"
+    },
+    {
+      "id": "usr-mv3ygv94",
+      "username": "s",
+      "passwordPlain": "s",
+      "passwordHash": "h_73",
+      "fullName": "s",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T15:05:55.000Z",
+          "lastActive": "2026-10-11T15:05:55.000Z"
+        }
+      ],
+      "phone": "3",
+      "createdAt": "2026-10-11T15:05:55.000Z"
     }
   ],
   "items": [
@@ -1006,6 +1026,23 @@
   ],
   "notifications": [
     {
+      "id": "notif-mv3ygv94",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: s",
+      "message": "Staff s (@s) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T15:05:55.000Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3ygv94",
+        "username": "s"
+      }
+    },
+    {
       "id": "notif-mv3y9ox3",
       "type": "signup_request",
       "priority": "warning",
@@ -1285,7 +1322,7 @@
       "role": "OWNER",
       "deviceId": "dev-jp4bdcj-mv3yc9sx",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T15:03:04.267Z"
+      "updatedAt": "2026-10-11T15:05:35.498Z"
     }
   ]
 }
