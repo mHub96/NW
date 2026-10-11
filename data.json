@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T13:23:44.460Z",
+    "lastUpdated": "2026-10-11T14:57:47.035Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -336,6 +336,27 @@
       "phone": "",
       "createdAt": "2026-10-11T13:23:00.752Z",
       "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv3y6eqi",
+      "username": "محمد",
+      "passwordPlain": "1",
+      "passwordHash": "h_31",
+      "fullName": "محمد رياض",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-88i5qzw-mv2zawci",
+          "name": "Windows PC (Desktop)",
+          "platform": "Win32",
+          "registeredAt": "2026-10-11T14:57:47.034Z",
+          "lastActive": "2026-10-11T14:57:47.034Z"
+        }
+      ],
+      "phone": "0805195075",
+      "createdAt": "2026-10-11T14:57:47.034Z"
     }
   ],
   "items": [
@@ -932,6 +953,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv3y6eqi",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: محمد رياض",
+      "message": "Staff محمد رياض (@محمد) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T14:57:47.034Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv3y6eqi",
+        "username": "محمد"
+      }
+    },
     {
       "id": "notif-mv3usj68",
       "type": "signup_request",
