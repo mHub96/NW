@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:57:05.027Z",
+    "lastUpdated": "2026-10-11T15:57:51.499Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -136,6 +136,27 @@
       ],
       "phone": "",
       "createdAt": "2026-10-11T15:40:20.311Z"
+    },
+    {
+      "id": "usr-mv40bnyi",
+      "username": "as",
+      "passwordPlain": "1234",
+      "passwordHash": "h_170842",
+      "fullName": "احمد سالم البارون",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-7fg1vg4-mv3umy52",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T15:57:51.498Z",
+          "lastActive": "2026-10-11T15:57:51.498Z"
+        }
+      ],
+      "phone": "",
+      "createdAt": "2026-10-11T15:57:51.498Z"
     }
   ],
   "items": [
@@ -732,6 +753,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv40bnyi",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: احمد سالم البارون",
+      "message": "Staff احمد سالم البارون (@as) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T15:57:51.498Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv40bnyi",
+        "username": "as"
+      }
+    },
     {
       "id": "notif-mv40af6l",
       "type": "signup_request",
