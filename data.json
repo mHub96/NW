@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T15:55:37.610Z",
+    "lastUpdated": "2026-10-11T15:56:08.612Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -136,6 +136,27 @@
       ],
       "phone": "",
       "createdAt": "2026-10-11T15:40:20.311Z"
+    },
+    {
+      "id": "usr-mv409gkj",
+      "username": "s23",
+      "passwordPlain": "23",
+      "passwordHash": "h_641",
+      "fullName": "S23",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-7fg1vg4-mv3umy52",
+          "name": "Android Mobile",
+          "platform": "Linux armv81",
+          "registeredAt": "2026-10-11T15:56:08.611Z",
+          "lastActive": "2026-10-11T15:56:08.611Z"
+        }
+      ],
+      "phone": "",
+      "createdAt": "2026-10-11T15:56:08.611Z"
     }
   ],
   "items": [
@@ -732,6 +753,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv409gkj",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: S23",
+      "message": "Staff S23 (@s23) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-11T15:56:08.612Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv409gkj",
+        "username": "s23"
+      }
+    },
     {
       "id": "notif-mv3zpd3i",
       "type": "user_approved",
