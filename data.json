@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-12T07:08:41.343Z",
+    "lastUpdated": "2026-10-12T10:30:46.637Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -1208,7 +1208,7 @@
       "role": "OWNER",
       "deviceId": "dev-w9d20x9-mv2ywklv",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-12T05:16:13.013Z"
+      "updatedAt": "2026-10-12T10:30:45.180Z"
     },
     {
       "endpoint": "https://web.push.apple.com/QBTA7wqVivfa9OC7c4DoQqXFFP3XQ1N0NA_TYbOqqVVeaoIeC2zguKary_cuta5o4Gz9sxgS9OhmlNopG7NoFFh-XfEWXFYkq15xE6OjalANh5W_foC8pOXdyNpc4v_F6JsFpm20IvzHIbkTfM5VdaO0h-RXp39KlNSIiqHtsas",
