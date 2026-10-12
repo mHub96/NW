@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-12T07:06:10.221Z",
+    "lastUpdated": "2026-10-12T07:07:10.030Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -380,6 +380,27 @@
       "phone": "1",
       "createdAt": "2026-10-11T14:58:22.608Z",
       "rejectReason": "Rejected by administration"
+    },
+    {
+      "id": "usr-mv4wt1l9",
+      "username": "a.h albaron",
+      "passwordPlain": "1986",
+      "passwordHash": "h_172326",
+      "fullName": "Ahmed ALbaron",
+      "role": "REGULAR",
+      "status": "pending",
+      "deviceLimit": 1,
+      "registeredDevices": [
+        {
+          "id": "dev-2610wnb-mv4wqydr",
+          "name": "Apple iPhone (iOS Safari)",
+          "platform": "iPhone",
+          "registeredAt": "2026-10-12T07:07:10.029Z",
+          "lastActive": "2026-10-12T07:07:10.029Z"
+        }
+      ],
+      "phone": "",
+      "createdAt": "2026-10-12T07:07:10.029Z"
     }
   ],
   "items": [
@@ -976,6 +997,23 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif-mv4wt1l9",
+      "type": "signup_request",
+      "priority": "warning",
+      "title": "New Sign-up Request: Ahmed ALbaron",
+      "message": "Staff Ahmed ALbaron (@a.h albaron) requested registration. Needs approval and device limit review.",
+      "timestamp": "2026-10-12T07:07:10.029Z",
+      "targetRoles": [
+        "OWNER",
+        "ADMIN"
+      ],
+      "readBy": [],
+      "metadata": {
+        "userId": "usr-mv4wt1l9",
+        "username": "a.h albaron"
+      }
+    },
     {
       "id": "notif-mv3y766o",
       "type": "signup_request",
