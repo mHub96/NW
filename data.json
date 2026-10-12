@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-11T18:17:53.050Z",
+    "lastUpdated": "2026-10-12T05:16:14.445Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -988,8 +988,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3y766o",
@@ -1008,8 +1007,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3y6eqi",
@@ -1028,8 +1026,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3usj68",
@@ -1048,8 +1045,7 @@
         "ADMIN"
       ],
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3uncby",
@@ -1064,8 +1060,7 @@
       "message": "Staff C (@c) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:21:12.241Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3sl1nz",
@@ -1080,8 +1075,7 @@
       "message": "Staff Conrad (@con) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-11T12:19:43.348Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv3sj52q",
@@ -1096,8 +1090,7 @@
       "message": "Staff حسن مرزوق (@حسن) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:59:11.617Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv322tc1",
@@ -1112,8 +1105,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 1 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:54:50.202Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1130,8 +1122,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: High Pressure (90 - 130 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 1 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:50:13.199Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1148,8 +1139,7 @@
       "message": "Staff Falah (@falah) requested registration. Needs approval and device limit review.",
       "timestamp": "2026-10-10T23:33:26.963Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "userId": "usr-mv315pgz",
@@ -1164,8 +1154,7 @@
       "message": "Warning: VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Medium Pressure (50 - 90 mmH2O), Manufacturer: Integra Codman (Medos/Hakim)] has only 2 Kits remaining in storage (Threshold: 2). Refill advised.",
       "timestamp": "2026-10-10T23:06:48.063Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "itemName": "VP Shunt System",
@@ -1182,8 +1171,7 @@
       "message": "Dr. Haidar (Chief Neurosurgeon / Storage Director) refilled VP Shunt System [Type of Shunt: Burr Hole Design, Pressure Gauge Level: Low Pressure (10 - 50 mmH2O), Manufacturer: B. Braun (Miethke proGAV)] by +1 Kits. Available for this specification: 1 Kits. (Note: Hello!)",
       "timestamp": "2026-10-10T23:05:08.631Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {
         "itemId": "item-vpshunt-01",
@@ -1202,8 +1190,7 @@
       "message": "Operative storage active with separate spec-level stock tracking and hardware device security.",
       "timestamp": "2026-10-11T01:50:00.000Z",
       "readBy": [
-        "owner",
-        "mrj"
+        "owner"
       ],
       "metadata": {}
     }
@@ -1240,19 +1227,7 @@
       "role": "OWNER",
       "deviceId": "dev-w9d20x9-mv2ywklv",
       "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T17:19:41.204Z"
-    },
-    {
-      "endpoint": "https://fcm.googleapis.com/fcm/send/fLUoh9xcc3U:APA91bFfyzk0gSQYhGsdCvWyWi2YYnk5IMzzo-8UUkMNqOc0f1etKg3pmikT7rgriYuFq1l4m1B2D2721zAR7PpvolttXEebn140RIkQ_437XFVSRyzdDLrvEIupOVP2g5xmbJK0aUXj",
-      "keys": {
-        "p256dh": "BDOUbjMtJxzkcX22qWmPXmhXG1U154FU6CFlArG7eT2Z-BQ8z4dt0iewtCf8pJkjzsT90UxsK7oO9qg7Cs_IZ4A",
-        "auth": "abPoUyaaRxTtDC5GNWIfKA"
-      },
-      "username": "mrj",
-      "role": "OWNER",
-      "deviceId": "dev-uronqbh-mv406ldx",
-      "platform": "Linux armv81",
-      "updatedAt": "2026-10-11T18:17:52.298Z"
+      "updatedAt": "2026-10-12T05:16:13.013Z"
     }
   ]
 }
