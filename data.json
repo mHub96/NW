@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-12T07:07:10.030Z",
+    "lastUpdated": "2026-10-12T07:07:29.978Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -387,9 +387,9 @@
       "passwordPlain": "1986",
       "passwordHash": "h_172326",
       "fullName": "Ahmed ALbaron",
-      "role": "REGULAR",
-      "status": "pending",
-      "deviceLimit": 1,
+      "role": "ADMIN",
+      "status": "approved",
+      "deviceLimit": "2",
       "registeredDevices": [
         {
           "id": "dev-2610wnb-mv4wqydr",
@@ -998,6 +998,23 @@
   ],
   "notifications": [
     {
+      "id": "notif-mv4wtgzd",
+      "type": "user_approved",
+      "priority": "normal",
+      "title": "User Approved: Ahmed ALbaron",
+      "message": "Ahmed ALbaron (@a.h albaron) was approved as ADMIN with 2 device limit by د  محمد رياض جعفر.",
+      "timestamp": "2026-10-12T07:07:29.977Z",
+      "targetUsers": [
+        "a.h albaron"
+      ],
+      "readBy": [
+        "mrj"
+      ],
+      "metadata": {
+        "userId": "usr-mv4wt1l9"
+      }
+    },
+    {
       "id": "notif-mv4wt1l9",
       "type": "signup_request",
       "priority": "warning",
@@ -1008,7 +1025,9 @@
         "OWNER",
         "ADMIN"
       ],
-      "readBy": [],
+      "readBy": [
+        "mrj"
+      ],
       "metadata": {
         "userId": "usr-mv4wt1l9",
         "username": "a.h albaron"
