@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-12T07:08:08.301Z",
+    "lastUpdated": "2026-10-12T07:08:29.616Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -307,7 +307,7 @@
           "name": "Apple iPhone (iOS Safari)",
           "platform": "iPhone",
           "registeredAt": "2026-10-12T07:07:10.029Z",
-          "lastActive": "2026-10-12T07:07:10.029Z"
+          "lastActive": "2026-10-12T07:08:29.615Z"
         }
       ],
       "phone": "",
