@@ -2,7 +2,7 @@
   "meta": {
     "appName": "NeuroWare",
     "version": "2.5.0",
-    "lastUpdated": "2026-10-12T07:07:52.638Z",
+    "lastUpdated": "2026-10-12T07:07:57.330Z",
     "author": "Dr. Mohammed Riyadh",
     "hospital": "Neurosurgical Center & Operative Storage",
     "githubSync": {
@@ -143,19 +143,6 @@
       ],
       "phone": "+9647739862206",
       "createdAt": "2026-09-10T11:00:00.000Z"
-    },
-    {
-      "id": "usr-reg-02",
-      "username": "dr_anwar",
-      "passwordHash": "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-      "passwordPlain": "Anwar2026!",
-      "fullName": "د. انور ماجد (Neurosurgeon)",
-      "role": "REGULAR",
-      "status": "approved",
-      "deviceLimit": 2,
-      "registeredDevices": [],
-      "phone": "+9647758674695",
-      "createdAt": "2026-09-15T14:30:00.000Z"
     },
     {
       "id": "usr-pending-01",
